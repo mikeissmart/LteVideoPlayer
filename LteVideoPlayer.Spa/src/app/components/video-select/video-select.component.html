@@ -1,0 +1,86 @@
+<br>
+<div class="container">
+  <div *ngIf="currentDir() != null">
+    <div class="d-flex justify-content-center" [hidden]="!isPlaying">
+      <button class="btn btn-primary" (click)="isPlaying = false">Expand Path</button>
+    </div>
+  </div>
+  <div [hidden]="isPlaying">
+    <div class="row">
+      <div class="offset-1 col-10">
+        <label for="search">Search</label>
+        <input class="form-control" id="search" type="text" [(ngModel)]="search" [disabled]="!isCurrentRootDir()">
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-12">
+        <p>Path: {{ currentDir()?.path + '\\' + currentDir()?.name }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <div class="table-responsive">
+          <table class="table table-sm text-light">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!isCurrentRootDir()">
+                <td>
+                  <button class="btn btn-sm btn-primary" (click)="popDir()">
+                    Back
+                  </button>
+                </td>
+                <td>..</td>
+              </tr>
+              <tr *ngFor="let item of currentSubDirs()">
+                <td>
+                  <button class="btn btn-sm btn-primary" (click)="pushDir(item)">
+                    Open
+                  </button>
+                </td>
+                <td>{{ item.name }}</td>
+              </tr>
+              <tr *ngFor="let item of currentDir().videos">
+                <td>
+                  <button class="btn btn-sm btn-success" (click)="playFile(item)">
+                    Play
+                  </button>
+                  &nbsp;
+                  <button class="btn btn-sm btn-success" (click)="playlist(item)">
+                    Playlist
+                  </button>
+                </td>
+                <td>{{ item }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<br>
+<div [hidden]="sourceFiles == null || sourceFiles.length == 0">
+  <video width="100%" #player controls (loadeddata)="player.play()" (play)="isPlaying = true" (ended)="onPlayerEnded()"
+    [src]="currentSourceFile ?? ''" crossorigin>
+  </video>
+</div>
+<div class="container" *ngIf="isPlaying">
+  <div class="row">
+    <div class="col-6">
+      <p>Playing Now: {{ queueFiles[sourceFileIndex] }}</p>
+    </div>
+    <div class="col-6">
+      <p>Playing Next: {{
+        (queueFiles.length > 0 && sourceFileIndex + 1 != queueFiles.length)
+        ? queueFiles[sourceFileIndex + 1]
+        : 'N/A' }}
+      </p>
+    </div>
+  </div>
+</div>
