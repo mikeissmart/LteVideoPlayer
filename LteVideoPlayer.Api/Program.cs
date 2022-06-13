@@ -1,19 +1,53 @@
+using LteVideoPlayer.Api;
+using LteVideoPlayer.Api.CronJob.Convert;
+using LteVideoPlayer.Api.Persistance;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+var services = builder.Services;
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+services
+    .AddConfigs(configuration)
+    .AddDbContext<AppDbContext>(x => x.UseSqlite(configuration.GetConnectionString("SqliteDefaultConnection")))
+    .AddAutoMapper(x => x.AddProfile(new MappingProfile()))
+    .AddServices()
+    .AddCronJobs()
+    .AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+        options.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
+        options.SerializerSettings.TypeNameHandling = TypeNameHandling.None;
+    });
+;
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    // Migrate Database
+    scope.ServiceProvider
+        .GetRequiredService<AppDbContext>()
+        .Database
+        .Migrate();
+    // Start ConvertQueueCronJob
+    scope.ServiceProvider
+        .GetRequiredService<ConvertQueueCronJob>()
+        .StartQueue();
+}
 
 // Configure the HTTP request pipeline.
 
 app.UseHttpsRedirection();
 
 app.UseCors(x => x
+    .AllowAnyOrigin()
     .AllowAnyMethod()
-    .AllowAnyHeader()
-    .SetIsOriginAllowed(origin => true));
+    .AllowAnyHeader());
 app.UseAuthorization();
 
 app.MapControllers();

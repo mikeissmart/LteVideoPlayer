@@ -1,0 +1,32 @@
+<div *ngIf="currentFile != null">
+  <video
+    class="pb-3"
+    width="100%"
+    #player
+    controls
+    (loadeddata)="onLoadedData(player)"
+    (ended)="playerEnded()"
+    [src]="
+      currentFile != null ? directoryService.streamFileUrl(currentFile!) : ''
+    "
+    crossorigin
+  ></video>
+  <div class="row">
+    <div class="col-6">
+      <button class="btn btn-sm btn-primary" (click)="restartPlayer()">
+        Restart
+      </button>
+      {{ currentFile?.filePathName ?? "N/A" }}
+    </div>
+    <div class="col-6">
+      <button
+        class="btn btn-sm btn-primary"
+        (click)="playerEnded()"
+        [disabled]="nextFile == null"
+      >
+        Play Next
+      </button>
+      {{ nextFile?.filePathName ?? "N/A" }}
+    </div>
+  </div>
+</div>

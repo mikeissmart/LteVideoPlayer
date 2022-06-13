@@ -1,0 +1,125 @@
+<div class="row pb-3 text-center">
+  <div class="col-2">
+    <div class="form-check" *ngIf="isAdmin">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="isStaging"
+        (change)="stagingChanged()"
+        [checked]="isStaging"
+      />
+      <label class="form-check-label" for="isStaging">Use Staging</label>
+    </div>
+  </div>
+  <div class="col-2" *ngIf="isAdmin">
+    <button
+      class="btn btn-sm btn-primary form-control"
+      (click)="convertFilesListAll()"
+    >
+      List All Converts
+    </button>
+  </div>
+  <div class="col-3" *ngIf="isStaging">
+    <button
+      class="btn btn-sm btn-success form-control"
+      (click)="convertAllFiles()"
+    >
+      Queue Convert Directory
+    </button>
+  </div>
+</div>
+<div class="row pb-3">
+  <div class="col-12">
+    <p>Path: \{{ currentDir.dirPathName }}</p>
+    <app-input-validation
+      property="Directory"
+      [validations]="errors"
+    ></app-input-validation>
+  </div>
+</div>
+<div class="row pb-1">
+  <div class="col-2 col-lg-1">
+    <button
+      class="btn btn-sm btn-primary form-control"
+      (click)="popDir()"
+      [disabled]="currentDir.dirPathName == ''"
+    >
+      Back
+    </button>
+  </div>
+  <div class="col-10 col-lg-11">..</div>
+</div>
+<div class="row pb-1" *ngFor="let item of dirsAndFiles.dirs">
+  <div class="col-2 col-lg-1">
+    <button class="btn btn-sm btn-primary form-control" (click)="pushDir(item)">
+      Open
+    </button>
+  </div>
+  <div class="col-10 col-lg-11">
+    {{ item.dirName }}
+  </div>
+</div>
+<div class="row pb-1" *ngFor="let item of dirsAndFiles.files">
+  <div class="col-2 col-lg-1">
+    <button
+      class="btn btn-sm btn-success form-control"
+      *ngIf="!isStaging"
+      (click)="playFile(item)"
+    >
+      Play
+    </button>
+    <button
+      class="btn btn-sm btn-success form-control"
+      *ngIf="isStaging && item.convertQueued == false"
+      (click)="convertFile(item)"
+    >
+      Convert
+    </button>
+    <span class="text-danger" *ngIf="isStaging && item.convertQueued == true">
+      Converting
+    </span>
+  </div>
+  <div class="col-10 col-lg-11">
+    {{ item.fileName }}
+  </div>
+</div>
+<app-modal #convertAllModal [showCloseBtn]="false" size="xl">
+  <div header>
+    <h4>Queue Convert Directory</h4>
+  </div>
+  <div body>
+    <app-convert-file-add-many
+      #convertAll
+      (onCovertFileQueued)="setConvertQueued($event)"
+      (onCovertFilesAllSaved)="convertAllModal.closeModal()"
+      (onCancel)="convertAllModal.closeModal()"
+    ></app-convert-file-add-many>
+  </div>
+</app-modal>
+<app-modal #convertModal [showCloseBtn]="false" size="xl">
+  <div header>
+    <h4>Queue Convert File</h4>
+  </div>
+  <div body>
+    <p>
+      <app-convert-file-add
+        #convert
+        (onCovertFileSaved)="convertModal.closeModal()"
+        (onCancel)="convertModal.closeModal()"
+      ></app-convert-file-add>
+    </p>
+  </div>
+</app-modal>
+<app-modal #convertListAllModal [showCloseBtn]="true" [fullscreen]="true">
+  <div header>
+    <h4>All Convert Files</h4>
+  </div>
+  <div body>
+    <app-convert-file-list-all #convertListAll></app-convert-file-list-all>
+  </div>
+</app-modal>
+<app-modal #videoPlayerModal [showCloseBtn]="true" [fullscreen]="true">
+  <div body>
+    <app-video-player #videoPlayer></app-video-player>
+  </div>
+</app-modal>

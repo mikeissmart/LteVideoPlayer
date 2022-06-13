@@ -1,9 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { VideoSelectComponent } from './components/video-select/video-select.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
 
-const routes: Routes = [{ path: '', component: VideoSelectComponent }];
+const routes: Routes = [
+  { path: '', component: DashboardComponent },
+  { path: 'admin', component: DashboardComponent },
+  { path: '**', redirectTo: '' },
+];
 
 @NgModule({
   imports: [

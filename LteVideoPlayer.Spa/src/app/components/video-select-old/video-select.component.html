@@ -1,11 +1,11 @@
-<br>
+<!--<br>
 <div class="container">
-  <div *ngIf="currentDir() != null">
-    <div class="d-flex justify-content-center" [hidden]="!isPlaying">
-      <button class="btn btn-primary" (click)="isPlaying = false">Expand Path</button>
+  <div [hidden]="isExpanded">
+    <div class="d-flex justify-content-center">
+      <button class="btn btn-primary" (click)="isExpanded = true">Expand Path</button>
     </div>
   </div>
-  <div [hidden]="isPlaying">
+  <div [hidden]="!isExpanded">
     <div class="row">
       <div class="offset-1 col-10">
         <label for="search">Search</label>
@@ -55,7 +55,7 @@
                     Playlist
                   </button>
                 </td>
-                <td>{{ item }}</td>
+                <td>{{ item.name }}</td>
               </tr>
             </tbody>
           </table>
@@ -65,22 +65,28 @@
   </div>
 </div>
 <br>
-<div [hidden]="sourceFiles == null || sourceFiles.length == 0">
-  <video width="100%" #player controls (loadeddata)="player.play()" (play)="isPlaying = true" (ended)="onPlayerEnded()"
-    [src]="currentSourceFile ?? ''" crossorigin>
+<div [hidden]="currentFile == null">
+  <video width="100%" #player controls (loadeddata)="onLoadedData(player)" (play)="onPlaying()"
+    (ended)="onPlayerEnded()" [src]="getCurrentFileApiUrl() ?? ''" crossorigin>
   </video>
+</div>
+<div class="container" [hidden]="currentFile == null">
+  <div class="d-flex justify-content-center">
+    <button class="btn btn-sm btn-danger" (click)="convertFileToMp4(currentFile!)">
+      Video Not Playing, Attempt Convert
+    </button>
+  </div>
 </div>
 <div class="container" *ngIf="isPlaying">
   <div class="row">
     <div class="col-6">
-      <p>Playing Now: {{ queueFiles[sourceFileIndex] }}</p>
+      <p>Playing Now:</p>
+      <p>{{ currentFile!.name }}</p>
     </div>
     <div class="col-6">
-      <p>Playing Next: {{
-        (queueFiles.length > 0 && sourceFileIndex + 1 != queueFiles.length)
-        ? queueFiles[sourceFileIndex + 1]
-        : 'N/A' }}
+      <p>Playing Next:</p>
+      <p>{{ nextQueuedFile()?.name ?? 'N/A' }}
       </p>
     </div>
   </div>
-</div>
+</div>-->

@@ -2,10 +2,52 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
+export interface IConvertFileDto
+{
+	id?: number;
+	output?: string;
+	errored?: boolean;
+	originalFile?: IFileDto;
+	convertedFile?: IFileDto;
+	createdDate?: Date;
+	startedDate?: Date;
+	endedDate?: Date;
+}
+export interface ICreateConvertDto
+{
+	originalFile?: IFileDto;
+	convertedFile?: IFileDto;
+}
 export interface IDirDto
 {
-	path?: string;
+	dirPath?: string;
+	dirName?: string;
+	dirPathName?: string;
+}
+export interface IDirsAndFilesDto
+{
+	dirs?: IDirDto[];
+	files?: IFileDto[];
+}
+export interface IFileDto
+{
+	filePath?: string;
+	fileName?: string;
+	fileExists?: boolean;
+	convertQueued?: boolean;
+	filePathName?: string;
+}
+export interface IFileHistoryDto
+{
+	id?: number;
+	userProfileId?: number;
+	percentWatched?: number;
+	fileEntity?: IFileDto;
+	startedDate?: Date;
+}
+export interface IUserProfileDto
+{
+	id?: number;
 	name?: string;
-	subDirs?: IDirDto[];
-	videos?: string[];
+	createdDate?: Date;
 }

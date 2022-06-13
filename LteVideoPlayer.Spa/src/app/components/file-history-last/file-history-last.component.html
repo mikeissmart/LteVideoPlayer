@@ -1,0 +1,11 @@
+<div class="row" *ngIf="fileHistoryService.getLastFileHistory() != null">
+  <div class="col-1">
+    <button class="btn btn-primary">From Begining</button>
+  </div>
+  <div class="col-1">
+    <button class="btn btn-primary">Resume</button>
+  </div>
+  <div class="col-10">
+    {{ fileHistoryService.getLastFileHistory()!.fileEntity!.filePathName }}
+  </div>
+</div>

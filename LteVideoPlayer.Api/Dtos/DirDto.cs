@@ -2,9 +2,11 @@
 {
     public class DirDto : IRefactorType
     {
-        public string Path { get; set; } = "";
-        public string Name { get; set; } = "";
-        public List<DirDto> SubDirs { get; set; } = new List<DirDto>();
-        public List<string> Videos { get; set; } = new List<string>();
+        public string DirPath { get; set; } = "";
+        public string DirName { get; set; } = "";
+        public string DirPathName
+        {
+            get => Path.Combine(DirPath, DirName);
+        }
     }
 }

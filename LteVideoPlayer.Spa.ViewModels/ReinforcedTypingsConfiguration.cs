@@ -16,8 +16,7 @@ namespace LteVideoPlayer.Spa.ViewModels
 				.Where(x => x.GetInterfaces().Any(y => y == iRefactorType));
 
 			builder.ExportAsInterfaces(types,
-				c => c.WithPublicProperties(p => p
-						.ForceNullable())
+				c => c.WithPublicProperties(p => p.ForceNullable())
 						.ExportTo("models.d.ts")
 						.DontIncludeToNamespace());
 
@@ -27,12 +26,6 @@ namespace LteVideoPlayer.Spa.ViewModels
 					.DontIncludeToNamespace());*/
 
 			// Global type substitutions
-			builder.Substitute(typeof(DateTimeOffset), new RtSimpleTypeName("string"));
-			builder.Substitute(typeof(Guid), new RtSimpleTypeName("string"));
-			builder.Substitute(typeof(DateTime), new RtSimpleTypeName("Date"));
-			builder.Substitute(typeof(DateTime?), new RtSimpleTypeName("Date"));
-
-			// global type substitutions
 			builder.Substitute(typeof(DateTimeOffset), new RtSimpleTypeName("string"));
 			builder.Substitute(typeof(Guid), new RtSimpleTypeName("string"));
 			builder.Substitute(typeof(DateTime), new RtSimpleTypeName("Date"));
