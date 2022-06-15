@@ -23,7 +23,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
             _cancellationToken = applicationLifetime.ApplicationStopping;
             _videoConfig = videoConfig;
             _services = services;
-            _concurrentConverts = 5;
+            _concurrentConverts = 1;
         }
 
         public void StartQueue()
@@ -93,65 +93,8 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         logger.LogError(ex.Message);
                     }
                 }
-
-                #region a
-                /*// Prepopulate
-                foreach (var item in await convertVideoFileService.GetAllIncompleteConvertsAsync())
-                    _queue.Enqueue(item);
-
-                var runningTasks = new List<Task>();
-                var runningConvertFiles = new List<ConvertFileDto>();
-                while (!_cancellationToken.IsCancellationRequested)
-                {
-                    while (_queue.Count > 0 && runningTasks.Count < _concurrentConverts)
-                    {
-                        if (_queue.TryDequeue(out var convertFile))
-                        {
-                            convertFile = await convertVideoFileService.GetConvertsByIdAsync(convertFile.Id);
-                            var videoFile = await videoFileService.GetVideoFilesByIdAsync(convertFile!.VideoFileId);
-                            if (convertFile != null)
-                            {
-                                ProcessConvert(logger,
-                                    convertVideoFileService,
-                                    videoFileService,
-                                    convertFile,
-                                    videoFile,
-                                    _videoConfig);
-                                /*runningConvertFiles.Add(convertFile);
-                                runningTasks.Add(Task.Run(() => ProcessConvert(
-                                    logger,
-                                    convertVideoFileService,
-                                    videoFileService,
-                                    convertFile,
-                                    videoFile,
-                                    _videoConfig)));* /
-                            }
-                        }
-                    }
-
-                    /*for (var i = 0; i < runningTasks.Count; i++)
-                    {
-                        var task = runningTasks[i];
-                        if (task.IsCompleted)
-                        {
-                            runningConvertFiles.RemoveAt(i);
-                            runningTasks.RemoveAt(i);
-                            i--;
-                        }
-                    }* /
-                }*/
-                #endregion
             }
         }
-
-        /*private async Task<List<FileDto>> GetAllFilesAsync(DirDto dir, IDirectoryService directoryService)
-        {
-            var files = await directoryService.GetFilesAsync(dir.DirPathName, true);
-            foreach (var dirDto in await directoryService.GetDirsAsync(dir.DirPathName, true))
-                files.AddRange(await GetAllFilesAsync(dirDto, directoryService));
-
-            return files;
-        }*/
 
         private static void ProcessConvert(
             IConvertFileService convertFileService,
@@ -212,7 +155,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 {
                     // Convert successful
                     var pathParts = convert.ConvertedFile.FilePath.Split("\\");
-                    var checkPath = config.RootPath;
+                    var checkPath = config.VideoPath;
                     for (var i = 0; i < pathParts.Length; i++)
                     {
                         checkPath = Path.Combine(checkPath, pathParts[i]);
@@ -221,7 +164,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                     }
                     File.Move(
                         config.StagePath + convertedFilePathName,
-                        config.RootPath + convert.ConvertedFile.FilePathName,
+                        config.VideoPath + convert.ConvertedFile.FilePathName,
                         true);
                     File.Delete(config.StagePath + renameFilePathName);
 

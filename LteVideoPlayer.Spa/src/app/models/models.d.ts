@@ -45,6 +45,10 @@ export interface IFileHistoryDto
 	fileEntity?: IFileDto;
 	startedDate?: Date;
 }
+export interface IStringDto
+{
+	data?: string;
+}
 export interface IUserProfileDto
 {
 	id?: number;

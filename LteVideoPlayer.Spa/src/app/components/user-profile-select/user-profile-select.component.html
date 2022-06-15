@@ -1,10 +1,10 @@
-<br>
+<br />
 <h4>Select Profile</h4>
-<br>
+<br />
 <div class="row">
   <div class="col-4 pb-4" *ngFor="let item of userProfiles">
-    <div class="card text-center">
-      <div class="card-header">
+    <div class="card text-center bg-dark text-light border-light">
+      <div class="card-header border-light">
         <div class="card-title">
           {{ item.name }}
         </div>
@@ -21,11 +21,9 @@
     </div>
   </div>
   <div class="col-4">
-    <div class="card text-center">
-      <div class="card-header">
-        <div class="card-title">
-          New Profile
-        </div>
+    <div class="card text-center bg-dark text-light border-light">
+      <div class="card-header border-light">
+        <div class="card-title">New Profile</div>
       </div>
       <div class="card-body">
         <button class="btn btn-success" (click)="newUserProfile()">
@@ -40,7 +38,10 @@
     <h4>Create User Profile</h4>
   </div>
   <div body>
-    <app-user-profile-add-edit [userProfile]="selectedUserProfile" (onUserProfileChange)="saveUserProfile($event)"
-      (onCancel)="userProfileModal.closeModal()"></app-user-profile-add-edit>
+    <app-user-profile-add-edit
+      [userProfile]="selectedUserProfile"
+      (onUserProfileChange)="saveUserProfile($event)"
+      (onCancel)="userProfileModal.closeModal()"
+    ></app-user-profile-add-edit>
   </div>
 </app-modal>

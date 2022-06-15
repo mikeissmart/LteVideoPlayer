@@ -1,12 +1,14 @@
 ﻿using LteVideoPlayer.Api.CronJob.Convert;
 using LteVideoPlayer.Api.Dtos;
 using LteVideoPlayer.Api.Service;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LteVideoPlayer.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableCors]
     public class ConvertFileController : ControllerBase
     {
         private readonly IConvertFileService _convertFileService;

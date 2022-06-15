@@ -30,7 +30,7 @@ namespace LteVideoPlayer.Api.Service
 
         public bool FileExists(FileDto file, bool isStaging)
         {
-            return File.Exists((isStaging ? _videoConfig.RootPath : _videoConfig.StagePath) + file.FilePathName);
+            return File.Exists((isStaging ? _videoConfig.VideoPath : _videoConfig.StagePath) + file.FilePathName);
         }
 
         public DirsAndFilesDto GetDirsAndFiles(string dirPathName, bool isStaging)
@@ -93,7 +93,7 @@ namespace LteVideoPlayer.Api.Service
             if (index == files.Count - 1)
             {
                 // Last file goto next dir
-                var rootPath = isStaging ? _videoConfig.StagePath : _videoConfig.RootPath;
+                var rootPath = isStaging ? _videoConfig.StagePath : _videoConfig.VideoPath;
                 var parentDir = Directory.GetParent(Path.Combine(
                     rootPath,
                     file.FilePath.Substring(0, file.FilePath.Length - 2)))!
@@ -134,7 +134,7 @@ namespace LteVideoPlayer.Api.Service
 
         private List<DirDto> GetDirs(string dir, bool isStaging)
         {
-            var rootPath = isStaging ? _videoConfig.StagePath : _videoConfig.RootPath;
+            var rootPath = isStaging ? _videoConfig.StagePath : _videoConfig.VideoPath;
             var dirs = Directory.GetDirectories(rootPath + dir)
                 .OrderBy(x => x)
                 .ToList()
@@ -150,7 +150,7 @@ namespace LteVideoPlayer.Api.Service
 
         private List<FileDto> GetFiles(string dir, bool isStaging)
         {
-            var rootPath = isStaging ? _videoConfig.StagePath : _videoConfig.RootPath;
+            var rootPath = isStaging ? _videoConfig.StagePath : _videoConfig.VideoPath;
             var files = Directory.GetFiles(rootPath + dir)
                 .OrderBy(x => x)
                 .ToList()

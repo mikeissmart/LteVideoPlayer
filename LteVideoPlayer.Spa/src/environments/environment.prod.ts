@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://localhost:7183/api/',
+  apiUrl: 'http://videoapi.ttfn.com/api/',
 };

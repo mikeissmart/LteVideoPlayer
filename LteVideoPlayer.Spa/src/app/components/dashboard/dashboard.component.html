@@ -1,14 +1,22 @@
-<!--<br>
-<div [hidden]="showVideoSelect">
-  <app-watch-video-file-last></app-watch-video-file-last>
-  <div class="d-flex justify-content-center">
-    <button class="btn btn-primary" (click)="showVideoSelect = true">Video Select</button>
-  </div>
-  <br>
-</div>
-<app-video-file-select (onPlayVideoFile)="player.playVideo($event.id!)" [hidden]="!showVideoSelect">
-</app-video-file-select>
-<app-video-file-player #player (onPlayingStateChange)="showVideoSelect = false"></app-video-file-player>-->
 <br />
-<!--<app-file-history-last></app-file-history-last>-->
-<app-file-select [isAdmin]="isAdmin"></app-file-select>
+<p class="text-danger" *ngIf="isAdmin">
+  <button
+    class="btn btn-sm btn-danger"
+    (click)="hideConnectStatus = !hideConnectStatus"
+  >
+    {{ hideConnectStatus ? "Show" : "Hide" }}
+  </button>
+  &nbsp;
+  <span *ngIf="!hideConnectStatus">Error: {{ shareConnectStatus }}</span>
+</p>
+<app-user-profile-select
+  *ngIf="this.userProfileService.getCurrentUserProfile() == null"
+>
+</app-user-profile-select>
+<div
+  class="container"
+  *ngIf="this.userProfileService.getCurrentUserProfile() != null"
+>
+  <!--<app-file-history-last></app-file-history-last>-->
+  <app-file-select [isAdmin]="isAdmin"></app-file-select>
+</div>

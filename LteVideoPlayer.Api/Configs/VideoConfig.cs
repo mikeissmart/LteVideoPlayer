@@ -3,8 +3,31 @@
     public class VideoConfig : IConfig
     {
         public string RootPath { get; set; }
-        public string StagePath { get; set; }
-        public string FfmpegFile { get; set; }
+        public string VideoName { get; set; }
+        public string StageName { get; set; }
+        public string FfmpegName { get; set; }
+
+        public string VideoPath
+        {
+            get
+            {
+                return RootPath + VideoName;
+            }
+        }
+        public string StagePath
+        {
+            get
+            {
+                return RootPath + StageName;
+            }
+        }
+        public string FfmpegFile
+        {
+            get
+            {
+                return RootPath + FfmpegName;
+            }
+        }
         public int RemoveConvertingFileDays { get; set; }
     }
 }

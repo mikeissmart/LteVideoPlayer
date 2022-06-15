@@ -1,12 +1,14 @@
 ﻿using LteVideoPlayer.Api.Configs;
 using LteVideoPlayer.Api.Dtos;
 using LteVideoPlayer.Api.Service;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LteVideoPlayer.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableCors]
     public class DirectoryController : ControllerBase
     {
         private readonly IDirectoryService _directoryService;
@@ -70,7 +72,7 @@ namespace LteVideoPlayer.Api.Controllers
         {
             try
             {
-                var rootFilePathName = _videoConfig.RootPath + filePathName;
+                var rootFilePathName = _videoConfig.VideoPath + filePathName;
                 if (!System.IO.File.Exists(rootFilePathName))
                     throw new FileNotFoundException(rootFilePathName);
 

@@ -12,8 +12,8 @@ var services = builder.Services;
 
 services
     .AddConfigs(configuration)
-    .AddDbContext<AppDbContext>(x => x.UseSqlite(configuration.GetConnectionString("SqliteDefaultConnection")))
     .AddAutoMapper(x => x.AddProfile(new MappingProfile()))
+    .AddDbContext<AppDbContext>(x => x.UseSqlite(configuration.GetConnectionString("SqliteDefaultConnection")))
     .AddServices()
     .AddCronJobs()
     .AddControllers()
@@ -29,6 +29,10 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    // Start ConvertQueueCronJob
+    scope.ServiceProvider
+        .GetRequiredService<ShareConnect>()
+        .Connect();
     // Migrate Database
     scope.ServiceProvider
         .GetRequiredService<AppDbContext>()
@@ -42,7 +46,7 @@ using (var scope = app.Services.CreateScope())
 
 // Configure the HTTP request pipeline.
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors(x => x
     .AllowAnyOrigin()

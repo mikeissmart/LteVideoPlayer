@@ -1,11 +1,13 @@
 ﻿using LteVideoPlayer.Api.Dtos;
 using LteVideoPlayer.Api.Service;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LteVideoPlayer.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableCors]
     public class UserProfileController : ControllerBase
     {
         private readonly IUserProfileService _userProfileService;

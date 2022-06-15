@@ -45,7 +45,7 @@ export class ModalComponent implements OnInit {
       keyboard: true,
       scrollable: true,
       size: this.size,
-      fullscreen: this.fullscreen == null ? this.size : this.fullscreen,
+      fullscreen: this.fullscreen,
     } as NgbModalOptions);
   }
 
