@@ -15,11 +15,7 @@ namespace LteVideoPlayer.Api.Service
         Task<ConvertFileDto> GetConvertFileByIdAsync(int convertFileId);
         Task<ConvertFileDto> AddConvertFileAsync(CreateConvertDto convert, ModelStateDictionary? modelState = null);
         Task<ConvertFileDto> UpdateConvertAsync(ConvertFileDto convert);
-        /*Task<ConvertVideoFileDto?> GetConvertsByIdAsync(int convertFileId);
-        /*Task<ConvertVideoFileDto?> GetConvertsByVideoFileIdAsync(int videoFileId);
-        Task<List<ConvertVideoFileDto>> GetConvertsByUserProfileAsync(int userProfileId);* /
-        Task<ConvertVideoFileDto> AddConvertAsync(int userProfileId, int videoFileId, ModelStateDictionary? modelState = null);
-        Task<ConvertVideoFileDto> UpdateConvertAsync(ConvertVideoFileDto convert);*/
+        Task DeleteConvertAsync(ConvertFileDto convert);
     }
 
     public class ConvertFileService : IConvertFileService
@@ -177,6 +173,14 @@ namespace LteVideoPlayer.Api.Service
             return convert;
         }
 
+        public async Task DeleteConvertAsync(ConvertFileDto convert)
+        {
+            var entity = _mapper.Map<ConvertFile>(convert);
+            _appDbContext.Entry(entity).State = EntityState.Deleted;
+            await _appDbContext.SaveChangesAsync();
+            _appDbContext.Entry(entity).State = EntityState.Detached;
+        }
+
         private void CheckFileExists(IEnumerable<ConvertFileDto> convertFiles)
         {
             foreach (var file in convertFiles)
@@ -185,99 +189,5 @@ namespace LteVideoPlayer.Api.Service
                 file.ConvertedFile.FileExists = _directoryService.FileExists(file.ConvertedFile, true);
             }
         }
-
-        /*public async Task<ConvertVideoFileDto?> GetConvertsByIdAsync(int convertFileId)
-        {
-            return _mapper.Map<ConvertVideoFileDto?>(await _appDbContext.ConvertVideoFiles
-                .Where(x => x.Id == convertFileId)
-                .OrderBy(x => x.Id)
-                .AsNoTracking()
-                .SingleOrDefaultAsync());
-        }
-
-        / *public async Task<ConvertVideoFileDto?> GetConvertsByVideoFileIdAsync(int videoFileId)
-        {
-            return _mapper.Map<ConvertVideoFileDto?>(await _appDbContext.ConvertVideoFiles
-                .Where(x => x.VideoFileId == videoFileId)
-                .Include(x => x.VideoFile)
-                .OrderBy(x => x.Id)
-                .AsNoTracking()
-                .SingleOrDefaultAsync());
-        }
-
-        public async Task<List<ConvertVideoFileDto>> GetConvertsByUserProfileAsync(int userProfileId)
-        {
-            return _mapper.Map<List<ConvertVideoFileDto>>(await _appDbContext.ConvertVideoFiles
-                .Where(x => x.UserProfileId == userProfileId)
-                .Include(x => x.VideoFile)
-                .OrderBy(x => x.Id)
-                .AsNoTracking()
-                .ToListAsync());
-        }* /
-
-        public async Task<ConvertVideoFileDto> AddConvertAsync(int userProfileId, int videoFileId, ModelStateDictionary? modelState = null)
-        {
-            var profile = await _appDbContext.UserProfiles
-                .Where(x => x.Id == userProfileId)
-                .AsNoTracking()
-                .SingleOrDefaultAsync();
-            if (profile == null)
-            {
-                var error = "UserProfile not found, cannot be converted";
-                if (modelState != null)
-                    modelState.AddModelError(nameof(ConvertVideoFileDto.UserProfileId), error);
-                throw new ArgumentException(error);
-            }
-            if (profile.DeletedDate != null)
-            {
-                var error = "UserProfile deleted, cannot be converted";
-                if (modelState != null)
-                    modelState.AddModelError(nameof(ConvertVideoFileDto.UserProfileId), error);
-                throw new ArgumentException(error);
-            }
-            var video = await _appDbContext.VideoFiles
-                .Where(x => x.Id == videoFileId)
-                .AsNoTracking()
-                .SingleOrDefaultAsync();
-            if (video == null)
-            {
-                var error = "Video not found, cannot be converted";
-                if (modelState != null)
-                    modelState.AddModelError(nameof(ConvertVideoFileDto.VideoFileId), error);
-                throw new ArgumentException(error);
-            }
-            if (video.DeletedDate != null)
-            {
-                var error = "Video deleted, cannot be converted";
-                if (modelState != null)
-                    modelState.AddModelError(nameof(ConvertVideoFileDto.VideoFileId), error);
-                throw new ArgumentException(error);
-            }
-            if (_appDbContext.ConvertVideoFiles.Any(x => x.VideoFileId == videoFileId &&
-                x.EndedDate == null))
-            {
-                var error = "Video already queued to be converted";
-                if (modelState != null)
-                    modelState.AddModelError(nameof(ConvertVideoFileDto.VideoFileId), error);
-                throw new ArgumentException(error);
-            }
-
-            var entity = await _appDbContext.ConvertVideoFiles.AddAsync(new ConvertVideoFile
-            {
-                UserProfileId = userProfileId,
-                VideoFileId = videoFileId
-            });
-            await _appDbContext.SaveChangesAsync();
-
-            return _mapper.Map<ConvertVideoFileDto>(entity.Entity);
-        }
-
-        public async Task<ConvertVideoFileDto> UpdateConvertAsync(ConvertVideoFileDto convert)
-        {
-            var entity = _appDbContext.Update(_mapper.Map<ConvertVideoFile>(convert));
-            await _appDbContext.SaveChangesAsync();
-
-            return _mapper.Map<ConvertVideoFileDto>(entity.Entity);
-        }*/
     }
 }

@@ -29,7 +29,7 @@ export class ModalComponent implements OnInit {
   @Input()
   size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
   @Input()
-  fullscreen: boolean | null = null;
+  fullscreen: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | boolean | null = null;
   @Output()
   onClose = new EventEmitter();
 

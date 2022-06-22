@@ -89,9 +89,10 @@ export class FileSelectComponent implements OnInit {
       },
       (error) => {
         this.errors = error;
-        if (this.selectedDirs.length > 1) {
-          this.selectedDirs.pop();
-        }
+        const reset = [];
+        reset.push(this.selectedDirs[0]);
+        this.selectedDirs = reset;
+        this.fetchDirsAndFiles();
       }
     );
   }
@@ -107,6 +108,15 @@ export class FileSelectComponent implements OnInit {
         x.convertQueued = true;
       }
     });
+  }
+
+  setConvertQueuedAndCloseModal(fileName: string): void {
+    this.dirsAndFiles.files!.forEach((x) => {
+      if (x.fileName! == fileName) {
+        x.convertQueued = true;
+      }
+    });
+    this.convertModal?.closeModal();
   }
 
   convertAllFiles(): void {

@@ -1,7 +1,5 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Event, NavigationStart, Router } from '@angular/router';
-import { IConvertFileDto } from 'src/app/models/models';
-import { ShareConnectService } from 'src/app/services/api-services/share-connect.service';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { UserProfileService } from 'src/app/services/api-services/user-profile.service';
 
 @Component({
@@ -18,19 +16,10 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private readonly router: Router,
-    public userProfileService: UserProfileService,
-    private readonly shareConnectService: ShareConnectService
+    public userProfileService: UserProfileService
   ) {}
 
   ngOnInit(): void {
     this.isAdmin = this.router.url.includes('admin');
-    this.shareConnectService.getShareConnectStatus((result) => {
-      this.shareConnectStatus = result;
-      if (result.length > 0) {
-        this.hideConnectStatus = false;
-      } else {
-        this.shareConnectStatus = 'N/A';
-      }
-    });
   }
 }

@@ -1,14 +1,4 @@
 <br />
-<p class="text-danger" *ngIf="isAdmin">
-  <button
-    class="btn btn-sm btn-danger"
-    (click)="hideConnectStatus = !hideConnectStatus"
-  >
-    {{ hideConnectStatus ? "Show" : "Hide" }}
-  </button>
-  &nbsp;
-  <span *ngIf="!hideConnectStatus">Error: {{ shareConnectStatus }}</span>
-</p>
 <app-user-profile-select
   *ngIf="this.userProfileService.getCurrentUserProfile() == null"
 >

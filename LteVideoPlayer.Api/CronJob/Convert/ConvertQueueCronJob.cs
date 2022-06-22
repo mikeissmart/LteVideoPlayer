@@ -68,6 +68,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                                 queuedConverts.Add(convert);
 
                                 runningTasks.Add(Task.Run(() => ProcessConvert(
+                                    _cancellationToken,
                                     convertFileService,
                                     logger,
                                     convert,
@@ -97,11 +98,13 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         }
 
         private static void ProcessConvert(
+            CancellationToken cancellationToken,
             IConvertFileService convertFileService,
             ILogger<ConvertQueueCronJob> logger,
             ConvertFileDto convert,
             VideoConfig config)
         {
+            var stage = "";
             try
             {
                 var renameFileName = Path.GetExtension(convert.OriginalFile.FileName).Contains("_converting")
@@ -111,6 +114,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 var convertedFileName = "Converting_" + convert.ConvertedFile.FileName;
                 var convertedFilePathName = Path.Combine(convert.OriginalFile.FilePath, convertedFileName);
 
+                stage = "Renaming original file";
                 if (!File.Exists(config.StagePath + renameFilePathName))
                 {
                     File.Move(
@@ -133,6 +137,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                     UseShellExecute = false,
                 };
 
+                stage = "Converting Original File";
                 var output = new StringBuilder();
                 using (var process = new Process())
                 {
@@ -147,149 +152,63 @@ namespace LteVideoPlayer.Api.CronJob.Convert
 
                     process.Start();
                     process.BeginErrorReadLine();
-                    process.WaitForExit();
+                    while (!process.HasExited && !cancellationToken.IsCancellationRequested)
+                    {
+                        Thread.Sleep(5000);
+                    }
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        process.Kill(true);
+                        return;
+                    }
                 }
                 convert.Output = output.ToString();
 
-                if (File.Exists(config.StagePath + convertedFilePathName))
+                stage = "Create Convert directory";
+                // Convert successful
+                var pathParts = convert.ConvertedFile.FilePath.Split("\\");
+                var checkPath = config.VideoPath;
+                for (var i = 0; i < pathParts.Length; i++)
                 {
-                    // Convert successful
-                    var pathParts = convert.ConvertedFile.FilePath.Split("\\");
-                    var checkPath = config.VideoPath;
-                    for (var i = 0; i < pathParts.Length; i++)
-                    {
-                        checkPath = Path.Combine(checkPath, pathParts[i]);
-                        if (!Directory.Exists(checkPath))
-                            Directory.CreateDirectory(checkPath);
-                    }
-                    File.Move(
-                        config.StagePath + convertedFilePathName,
-                        config.VideoPath + convert.ConvertedFile.FilePathName,
-                        true);
-                    File.Delete(config.StagePath + renameFilePathName);
-
-                    var originalStagePath = Path.Combine(config.StagePath, convert.OriginalFile.FilePath);
-                    if (Directory.GetFiles(originalStagePath).Length == 0 &&
-                        Directory.GetDirectories(originalStagePath).Length == 0)
-                    {
-                        Directory.Delete(originalStagePath);
-                    }
+                    checkPath = Path.Combine(checkPath, pathParts[i]);
+                    if (!Directory.Exists(checkPath))
+                        Directory.CreateDirectory(checkPath);
                 }
-                else
+
+                stage = "Move Convert File";
+                File.Move(
+                    config.StagePath + convertedFilePathName,
+                    config.VideoPath + convert.ConvertedFile.FilePathName,
+                    true);
+
+                stage = "Delete Original File";
+                File.Delete(config.StagePath + renameFilePathName);
+
+                var originalStagePath = Path.Combine(config.StagePath, convert.OriginalFile.FilePath);
+                if (Directory.GetFiles(originalStagePath).Length == 0 &&
+                    Directory.GetDirectories(originalStagePath).Length == 0)
                 {
-                    // Convert errored
-                    convert.Errored = true;
+                    stage = "Delete Original Directory";
+                    Directory.Delete(originalStagePath);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(stage + ": " + ex.Message);
                 convert.Errored = true;
-                convert.Output = ex.Message;
+                convert.Output = stage + ": " + ex.Message;
             }
             finally
             {
                 convert.EndedDate = DateTime.Now;
                 lock (convertFileService)
                 {
-                    convertFileService.UpdateConvertAsync(convert).Wait();
+                    if (convert.Errored)
+                        convertFileService.UpdateConvertAsync(convert).Wait();
+                    else
+                        convertFileService.DeleteConvertAsync(convert).Wait();
                 }
             }
         }
-
-        /*private static void ProcessConvert(ILogger<ConvertQueueCronJob> logger,
-            IConvertVideoFileService convertVideoFileService,
-            IVideoFileService videoFileService,
-            ConvertFileDto convertFile,
-            FileDto? videoFile,
-            VideoConfig config)
-        {
-            try
-            {
-                if (videoFile == null)
-                    throw new ArgumentException("VideoFile not found");
-                var videoPathName = videoFile.VideoPathName;
-                var renameVideoName = Path.GetExtension(videoFile.VideoName).Contains("_converting")
-                    ? videoFile.VideoName
-                    : videoFile.VideoName + "_converting";
-                var renameVideoPathName = Path.Combine(videoFile.VideoPath, renameVideoName);
-                var convertVideoPathName = videoPathName.Remove(videoPathName.Length - Path.GetExtension(videoPathName).Length);
-                convertVideoPathName += ".mp4";
-
-                File.Move(config.RootPath + videoPathName, config.RootPath + renameVideoPathName);
-                videoFile.VideoName = renameVideoName;
-                videoFile.IsConverting = true;
-                videoFileService.UpdateVideoFileAsync(videoFile).Wait();
-
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = config.FfmpegFile,
-                    Arguments = $@"-i ""{config.RootPath + renameVideoPathName}"" -vcodec libx264 -acodec aac -y ""{config.RootPath + convertVideoPathName}""",
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                };
-                /*
-                 When the file is not convertable no .mp4 is created
-                 When the file is converable .mp4 file is create
-                 * /
-                var output = new StringBuilder();
-                var error = new StringBuilder();
-                using (var process = new Process())
-                {
-                    process.StartInfo = startInfo;
-                    process.OutputDataReceived += (s, e) =>
-                    {
-                        lock (output)
-                        {
-                            output.AppendLine(e.Data);
-                        }
-                    };
-                    process.ErrorDataReceived += (s, e) =>
-                    {
-                        lock (error)
-                        {
-                            error.AppendLine(e.Data);
-                        }
-                    };
-
-                    process.Start();
-                    process.BeginErrorReadLine();
-                    process.BeginOutputReadLine();
-                    process.WaitForExit();
-                }
-                convertFile.Output = output.ToString();
-                convertFile.Error = error.ToString();
-
-                /*                 
-                var output = new StringBuilder();
-                using (var exeProcess = Process.Start(startInfo)!)
-                {
-                    convertFile.Output = exeProcess.StandardOutput.ReadToEnd();
-                    convertFile.Error = exeProcess.StandardError.ReadToEnd();
-                    exeProcess.WaitForExit();
-                }
-                File.Delete(config.RootPath + renameVideoPathName);
-                 * /
-
-                //File.Delete(config.RootPath + renameVideoPathName);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex.Message);
-                convertFile.Error = ex.Message;
-            }
-            finally
-            {
-                if (videoFile != null)
-                {
-                    videoFile.IsConverting = false;
-                    videoFileService.UpdateVideoFileAsync(videoFile).Wait();
-                }
-                convertFile.EndedDate = DateTime.Now;
-                convertVideoFileService.UpdateConvertAsync(convertFile).Wait();
-            }
-        }*/
     }
 }
