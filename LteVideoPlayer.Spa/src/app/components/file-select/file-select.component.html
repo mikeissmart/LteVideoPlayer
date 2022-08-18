@@ -30,7 +30,7 @@
 </div>
 <div class="row pb-3">
   <div class="col-12">
-    <p>Path: \{{ currentDir.dirPathName }}</p>
+    <p>Path: \{{ currentDirPathName }}</p>
     <app-input-validation
       property="Directory"
       [validations]="errors"
@@ -42,7 +42,7 @@
     <button
       class="btn btn-sm btn-primary form-control"
       (click)="popDir()"
-      [disabled]="currentDir.dirPathName == ''"
+      [disabled]="currentDirPathName == ''"
     >
       Back
     </button>
@@ -118,8 +118,17 @@
     <app-convert-file-list-all #convertListAll></app-convert-file-list-all>
   </div>
 </app-modal>
-<app-modal #videoPlayerModal [showCloseBtn]="true" size="xl" fullscreen="lg">
+<app-modal
+  #videoPlayerModal
+  [showCloseBtn]="true"
+  size="xl"
+  fullscreen="lg"
+  (onClose)="onPlayerClose()"
+>
   <div body>
-    <app-video-player #videoPlayer></app-video-player>
+    <app-video-player
+      #videoPlayer
+      (onFilePlayChange)="onPlayFileChange($event)"
+    ></app-video-player>
   </div>
 </app-modal>

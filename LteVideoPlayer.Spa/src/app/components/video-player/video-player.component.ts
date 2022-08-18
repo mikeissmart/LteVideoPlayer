@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { IFileDto } from 'src/app/models/models';
 import { DirectoryService } from 'src/app/services/api-services/directory.service';
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
@@ -15,13 +15,18 @@ export class VideoPlayerComponent implements OnInit {
   isStaging = false;
   player: HTMLMediaElement | null = null;
 
+  @Output()
+  onFilePlayChange = new EventEmitter<IFileDto>();
+
   constructor(public directoryService: DirectoryService) {}
 
   ngOnInit(): void {}
 
   playFile(file: IFileDto, isStaging: boolean): void {
     this.currentFile = file;
+    this.onFilePlayChange.emit(file);
     this.isStaging = isStaging;
+    this.player?.play();
     this.directoryService.getNextFile(
       file,
       isStaging,
@@ -33,6 +38,7 @@ export class VideoPlayerComponent implements OnInit {
   onLoadedData(player: HTMLMediaElement): void {
     this.player = player;
     this.player.play();
+    //this.isPlaying = true;
   }
 
   playerEnded(): void {

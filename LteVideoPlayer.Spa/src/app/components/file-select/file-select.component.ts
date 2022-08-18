@@ -1,4 +1,11 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { IDirDto, IDirsAndFilesDto, IFileDto } from 'src/app/models/models';
 import { DirectoryService } from 'src/app/services/api-services/directory.service';
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
@@ -15,22 +22,12 @@ import { VideoPlayerComponent } from '../video-player/video-player.component';
 })
 export class FileSelectComponent implements OnInit {
   errors: ModelStateErrors | null = null;
-  selectedDirs: IDirDto[] = [
-    {
-      dirPath: '',
-      dirName: '',
-      dirPathName: '',
-    } as IDirDto,
-  ];
   dirsAndFiles: IDirsAndFilesDto = {
     dirs: [],
     files: [],
   } as IDirsAndFilesDto;
   isStaging = false;
-
-  public get currentDir(): IDirDto {
-    return this.selectedDirs[this.selectedDirs.length - 1];
-  }
+  isFirstChange = true;
 
   @ViewChild('convertAllModal')
   convertAllModal: ModalComponent | null = null;
@@ -55,6 +52,15 @@ export class FileSelectComponent implements OnInit {
   @Input()
   isAdmin = false;
 
+  @Input()
+  currentDirPathName = '';
+
+  @Input()
+  currentFileName: string | null = null;
+
+  @Output()
+  onDirOrFileChange = new EventEmitter<string | null>();
+
   constructor(private readonly directoryService: DirectoryService) {}
 
   ngOnInit(): void {
@@ -63,35 +69,95 @@ export class FileSelectComponent implements OnInit {
 
   stagingChanged(): void {
     this.isStaging = !this.isStaging;
-    while (this.selectedDirs.length != 1) {
-      this.selectedDirs.pop();
-    }
+    this.currentDirPathName = '';
     this.fetchDirsAndFiles();
   }
 
   pushDir(dir: IDirDto): void {
-    this.selectedDirs.push(dir);
+    this.currentDirPathName = dir.dirPathName!;
+    this.onDirOrFileChange.emit(null);
     this.fetchDirsAndFiles();
   }
 
   popDir(): void {
-    this.selectedDirs.pop();
+    const dirs = this.currentDirPathName.split('\\');
+    this.currentDirPathName = '';
+    for (let index = 0; index < dirs.length - 2; index++) {
+      this.currentDirPathName += dirs[index] + '\\';
+    }
+    this.onDirOrFileChange.emit(null);
     this.fetchDirsAndFiles();
+  }
+
+  routeChangeFetchDirAndFiles(dir: string, file: string | null): void {
+    if (dir != this.currentDirPathName || file != this.currentFileName) {
+      this.currentDirPathName = dir;
+      //this.currentFileName = file;
+
+      this.directoryService.getDirsAndFiles(
+        this.currentDirPathName,
+        this.isStaging,
+        (result) => {
+          this.errors = null;
+          this.dirsAndFiles = result;
+          if (
+            file != null &&
+            file != this.currentFileName &&
+            result.files != null &&
+            result.files!.length > 0
+          ) {
+            const resutlFiles = result.files!.filter((x) => x.fileName == file);
+            if (resutlFiles.length > 0) {
+              this.playFile(resutlFiles[0]);
+            }
+          } else {
+            this.videoPlayerModal?.closeModal();
+          }
+        },
+        (error) => {
+          this.errors = error;
+          this.currentDirPathName = '';
+          this.fetchDirsAndFiles();
+        }
+      );
+    }
   }
 
   fetchDirsAndFiles(): void {
     this.directoryService.getDirsAndFiles(
-      this.currentDir.dirPathName!,
+      this.currentDirPathName,
       this.isStaging,
       (result) => {
         this.errors = null;
         this.dirsAndFiles = result;
+
+        if (
+          this.currentFileName != null &&
+          result.files != null &&
+          result.files!.length > 0
+        ) {
+          const resutlFiles = result.files!.filter(
+            (x) => x.fileName == this.currentFileName
+          );
+          if (resutlFiles.length > 0) {
+            this.playFile(resutlFiles[0]);
+          }
+        }
+
+        /*if (playFile && result.files != null && result.files!.length > 0) {
+          const file = result.files!.filter(
+            (x) => x.fileName == this.currentFileName
+          );
+          if (file.length > 0 && file[0].fileName != this.currentFileName) {
+            this.playFile(file[0]);
+          }
+        } else {
+          this.videoPlayerModal?.closeModal();
+        }*/
       },
       (error) => {
         this.errors = error;
-        const reset = [];
-        reset.push(this.selectedDirs[0]);
-        this.selectedDirs = reset;
+        this.currentDirPathName = '';
         this.fetchDirsAndFiles();
       }
     );
@@ -120,7 +186,10 @@ export class FileSelectComponent implements OnInit {
   }
 
   convertAllFiles(): void {
-    this.convertAll!.setOriginals(this.currentDir, this.dirsAndFiles.files!);
+    this.convertAll!.setOriginals(
+      this.currentDirPathName,
+      this.dirsAndFiles.files!
+    );
     this.convertAllModal!.openModal();
   }
 
@@ -132,5 +201,16 @@ export class FileSelectComponent implements OnInit {
   playFile(file: IFileDto): void {
     this.videoPlayer?.playFile(file, this.isStaging);
     this.videoPlayerModal?.openModal();
+  }
+
+  onPlayFileChange(file: IFileDto): void {
+    this.currentFileName = file.fileName!;
+    this.currentDirPathName = file.filePath!;
+    this.onDirOrFileChange.emit(file.fileName!);
+  }
+
+  onPlayerClose(): void {
+    this.currentFileName = null;
+    this.onDirOrFileChange.emit(null);
   }
 }

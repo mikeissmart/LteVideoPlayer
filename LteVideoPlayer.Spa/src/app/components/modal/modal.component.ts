@@ -38,6 +38,7 @@ export class ModalComponent implements OnInit {
   ngOnInit(): void {}
 
   public openModal(): void {
+    this.modalService.dismissAll();
     this.modalRef = this.modalService.open(this.modal, {
       animation: true,
       backdrop: 'static',
@@ -50,10 +51,7 @@ export class ModalComponent implements OnInit {
   }
 
   closeModal(): void {
-    if (this.modalRef != null) {
-      this.modalRef.close();
-      this.modalRef = null;
-      this.onClose.emit();
-    }
+    this.modalService.dismissAll();
+    this.onClose.emit();
   }
 }

@@ -25,10 +25,10 @@ export class ConvertFileAddManyComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  setOriginals(dir: IDirDto, files: IFileDto[]): void {
+  setOriginals(dirPathName: string, files: IFileDto[]): void {
     this.convertItems = [];
-    this.originalPath = dir.dirPathName!;
-    this.convertPath = dir.dirPathName!;
+    this.originalPath = dirPathName;
+    this.convertPath = dirPathName;
 
     files
       .filter((x) => !x.convertQueued!)
