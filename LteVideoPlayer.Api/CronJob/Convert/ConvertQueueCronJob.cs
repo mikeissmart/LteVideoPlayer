@@ -131,7 +131,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = config.FfmpegFile,
-                    Arguments = $@"-i ""{config.StagePath + renameFilePathName}"" -vcodec libx264 -acodec aac -y ""{config.StagePath + convertedFilePathName}""",
+                    Arguments = $@"-i ""{config.StagePath + renameFilePathName}"" -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""",
                     CreateNoWindow = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,

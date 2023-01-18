@@ -14,6 +14,7 @@ export class VideoPlayerComponent implements OnInit {
   nextFile: IFileDto | null = null;
   isStaging = false;
   player: HTMLMediaElement | null = null;
+  isFirstPlay = true;
 
   @Output()
   onFilePlayChange = new EventEmitter<IFileDto>();
@@ -37,6 +38,15 @@ export class VideoPlayerComponent implements OnInit {
 
   onLoadedData(player: HTMLMediaElement): void {
     this.player = player;
+    if (this.isFirstPlay) {
+      this.player.muted = true;
+      setTimeout(() => {
+        this.player!.muted = false;
+        console.log('timer');
+      }, 1000);
+    } else {
+      this.player.muted = false;
+    }
     this.player.play();
     //this.isPlaying = true;
   }

@@ -1,8 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {}
+export class AppComponent {
+  logText = '';
+  showLogs = false;
+
+  ngOnInit(): void {}
+
+  @HostListener('window:logger')
+  onError() {
+    this.logText = (<any>window).logStr;
+  }
+}
