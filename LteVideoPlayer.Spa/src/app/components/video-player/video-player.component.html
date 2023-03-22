@@ -12,21 +12,66 @@
     crossorigin
   ></video>
   <div class="row">
-    <div class="col-6">
-      <button class="btn btn-sm btn-primary" (click)="restartPlayer()">
-        Restart
-      </button>
-      {{ currentFile?.filePathName ?? "N/A" }}
-    </div>
-    <div class="col-6">
-      <button
-        class="btn btn-sm btn-primary"
-        (click)="playerEnded()"
-        [disabled]="nextFile == null"
-      >
-        Play Next
-      </button>
-      {{ nextFile?.filePathName ?? "N/A" }}
+    <div class="col-10 offset-1">
+      <div class="d-flex justify-content-between">
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="restartPlayer()"
+          [disabled]="!isDataLoaded"
+        >
+          Restart
+        </button>
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="skip(-300)"
+          [disabled]="!isDataLoaded"
+        >
+          << 5 min
+        </button>
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="skip(-30)"
+          [disabled]="!isDataLoaded"
+        >
+          << 30 sec
+        </button>
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="skip(-5)"
+          [disabled]="!isDataLoaded"
+        >
+          << 5 sec
+        </button>
+        <span>|</span>
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="skip(5)"
+          [disabled]="!isDataLoaded"
+        >
+          >> 5 sec
+        </button>
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="skip(30)"
+          [disabled]="!isDataLoaded"
+        >
+          >> 30 sec
+        </button>
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="skip(300)"
+          [disabled]="!isDataLoaded"
+        >
+          >> 5 min
+        </button>
+        <button
+          class="col-1 btn btn-sm btn-primary text-nowrap"
+          (click)="playerEnded()"
+          [disabled]="nextFile == null || !isDataLoaded"
+        >
+          Play Next
+        </button>
+      </div>
     </div>
   </div>
 </div>

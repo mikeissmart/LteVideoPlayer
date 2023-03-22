@@ -125,6 +125,7 @@
   fullscreen="lg"
   (onClose)="onPlayerClose()"
 >
+  <div header>{{ currentDirPathName }}{{ currentFileName }}</div>
   <div body>
     <app-video-player
       #videoPlayer

@@ -15,9 +15,6 @@ import { UserProfileAddEditComponent } from './components/user-profile-add-edit/
 import { UserProfileSelectComponent } from './components/user-profile-select/user-profile-select.component';
 import { InputValidationComponent } from './components/input-validation/input-validation.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { WatchVideoFileLastComponent } from './components/watch-video-file-last/watch-video-file-last.component';
-import { VideoFileSelectComponent } from './components/video-file-select/video-file-select.component';
-import { VideoFilePlayerComponent } from './components/video-file-player/video-file-player.component';
 import { FileHistoryLastComponent } from './components/file-history-last/file-history-last.component';
 import { FileSelectComponent } from './components/file-select/file-select.component';
 import { ConvertFileAddComponent } from './components/convert-file-add/convert-file-add.component';
@@ -36,9 +33,6 @@ import { VideoPlayerComponent } from './components/video-player/video-player.com
     UserProfileSelectComponent,
     InputValidationComponent,
     DashboardComponent,
-    WatchVideoFileLastComponent,
-    VideoFileSelectComponent,
-    VideoFilePlayerComponent,
     FileHistoryLastComponent,
     FileSelectComponent,
     ConvertFileAddComponent,
