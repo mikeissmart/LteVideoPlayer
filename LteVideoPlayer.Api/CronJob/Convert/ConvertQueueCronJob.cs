@@ -10,6 +10,8 @@ namespace LteVideoPlayer.Api.CronJob.Convert
 {
     public class ConvertQueueCronJob
     {
+        private static readonly int _threadCount = Environment.ProcessorCount;
+
         private readonly CancellationToken _cancellationToken;
         private readonly VideoConfig _videoConfig;
         private readonly int _concurrentConverts;
@@ -128,10 +130,13 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                     convertFileService.UpdateConvertAsync(convert).Wait();
                 }
 
+                var threadStr = config.FfmpegThreads > 0
+                    ? $" -threads {config.FfmpegThreads}"
+                    : "";
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = config.FfmpegFile,
-                    Arguments = $@"-i ""{config.StagePath + renameFilePathName}"" -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""",
+                    Arguments = $@"-i ""{config.StagePath + renameFilePathName}""{threadStr}-c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""",
                     CreateNoWindow = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -164,32 +169,38 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 }
                 convert.Output = output.ToString();
 
-                stage = "Create Convert directory";
-                // Convert successful
-                var pathParts = convert.ConvertedFile.FilePath.Split("\\");
-                var checkPath = config.VideoPath;
-                for (var i = 0; i < pathParts.Length; i++)
+                stage = "Check if convert sucessfull";
+                if (!File.Exists(config.StagePath + convertedFilePathName))
+                    convert.Errored = true;
+                else
                 {
-                    checkPath = Path.Combine(checkPath, pathParts[i]);
-                    if (!Directory.Exists(checkPath))
-                        Directory.CreateDirectory(checkPath);
-                }
+                    stage = "Create Convert directory";
+                    // Convert successful
+                    var pathParts = convert.ConvertedFile.FilePath.Split("\\");
+                    var checkPath = config.VideoPath;
+                    for (var i = 0; i < pathParts.Length; i++)
+                    {
+                        checkPath = Path.Combine(checkPath, pathParts[i]);
+                        if (!Directory.Exists(checkPath))
+                            Directory.CreateDirectory(checkPath);
+                    }
 
-                stage = "Move Convert File";
-                File.Move(
-                    config.StagePath + convertedFilePathName,
-                    config.VideoPath + convert.ConvertedFile.FilePathName,
-                    true);
+                    stage = "Move Convert File";
+                    File.Move(
+                        config.StagePath + convertedFilePathName,
+                        config.VideoPath + convert.ConvertedFile.FilePathName,
+                        true);
 
-                stage = "Delete Original File";
-                File.Delete(config.StagePath + renameFilePathName);
+                    stage = "Delete Original File";
+                    File.Delete(config.StagePath + renameFilePathName);
 
-                var originalStagePath = Path.Combine(config.StagePath, convert.OriginalFile.FilePath);
-                if (Directory.GetFiles(originalStagePath).Length == 0 &&
-                    Directory.GetDirectories(originalStagePath).Length == 0)
-                {
-                    stage = "Delete Original Directory";
-                    Directory.Delete(originalStagePath);
+                    var originalStagePath = Path.Combine(config.StagePath, convert.OriginalFile.FilePath);
+                    if (Directory.GetFiles(originalStagePath).Length == 0 &&
+                        Directory.GetDirectories(originalStagePath).Length == 0)
+                    {
+                        stage = "Delete Original Directory";
+                        Directory.Delete(originalStagePath);
+                    }
                 }
             }
             catch (Exception ex)

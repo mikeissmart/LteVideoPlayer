@@ -6,6 +6,7 @@
         public string VideoName { get; set; }
         public string StageName { get; set; }
         public string FfmpegName { get; set; }
+        public int FfmpegThreads { get; set; }
 
         public string VideoPath
         {

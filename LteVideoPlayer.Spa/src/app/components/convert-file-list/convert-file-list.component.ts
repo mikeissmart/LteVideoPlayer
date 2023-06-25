@@ -11,7 +11,7 @@ export class ConvertFileListComponent implements OnInit {
   sortedConvertFiles: IConvertFileDto[] = [];
   selectedCovertFile: IConvertFileDto | null = null;
   sortProp: string | null = null;
-  sortAsc = true;
+  sortAsc = false;
 
   @ViewChild('viewOutput')
   viewOutput: ModalComponent | null = null;
