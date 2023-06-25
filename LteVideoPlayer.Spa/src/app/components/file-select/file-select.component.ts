@@ -14,6 +14,7 @@ import { ConvertFileAddComponent } from '../convert-file-add/convert-file-add.co
 import { ConvertFileListAllComponent } from '../convert-file-list-all/convert-file-list-all.component';
 import { ModalComponent } from '../modal/modal.component';
 import { VideoPlayerComponent } from '../video-player/video-player.component';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-file-select',
@@ -61,20 +62,26 @@ export class FileSelectComponent implements OnInit {
   @Output()
   onDirOrFileChange = new EventEmitter<string | null>();
 
-  constructor(private readonly directoryService: DirectoryService) {}
+  constructor(
+    private readonly directoryService: DirectoryService,
+    private readonly titleService: Title
+  ) {}
 
   ngOnInit(): void {
     this.fetchDirsAndFiles();
+    this.updateTitle();
   }
 
   stagingChanged(): void {
     this.isStaging = !this.isStaging;
     this.currentDirPathName = '';
     this.fetchDirsAndFiles();
+    this.updateTitle();
   }
 
   pushDir(dir: IDirDto): void {
     this.currentDirPathName = dir.dirPathName!;
+    this.updateTitle();
     this.onDirOrFileChange.emit(null);
     this.fetchDirsAndFiles();
   }
@@ -85,6 +92,7 @@ export class FileSelectComponent implements OnInit {
     for (let index = 0; index < dirs.length - 2; index++) {
       this.currentDirPathName += dirs[index] + '\\';
     }
+    this.updateTitle();
     this.onDirOrFileChange.emit(null);
     this.fetchDirsAndFiles();
   }
@@ -210,7 +218,16 @@ export class FileSelectComponent implements OnInit {
   }
 
   onPlayerClose(): void {
+    this.updateTitle();
     this.currentFileName = null;
     this.onDirOrFileChange.emit(null);
+  }
+
+  updateTitle() {
+    if (this.currentDirPathName.length > 0) {
+      this.titleService.setTitle(this.currentDirPathName);
+    } else {
+      this.titleService.setTitle('LteVideoPlayer');
+    }
   }
 }

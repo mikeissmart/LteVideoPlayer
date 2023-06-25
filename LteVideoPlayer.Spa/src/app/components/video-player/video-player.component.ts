@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { IFileDto } from 'src/app/models/models';
 import { DirectoryService } from 'src/app/services/api-services/directory.service';
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
@@ -20,12 +21,16 @@ export class VideoPlayerComponent implements OnInit {
   @Output()
   onFilePlayChange = new EventEmitter<IFileDto>();
 
-  constructor(public directoryService: DirectoryService) {}
+  constructor(
+    public directoryService: DirectoryService,
+    private readonly titleService: Title
+  ) {}
 
   ngOnInit(): void {}
 
   playFile(file: IFileDto, isStaging: boolean): void {
     this.currentFile = file;
+    this.titleService.setTitle(file.filePathName!);
     this.onFilePlayChange.emit(file);
     this.isStaging = isStaging;
     this.isDataLoaded = false;
