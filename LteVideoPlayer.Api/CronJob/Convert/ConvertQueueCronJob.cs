@@ -131,7 +131,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 }
 
                 var threadStr = config.FfmpegThreads > 0
-                    ? $" -threads {config.FfmpegThreads}"
+                    ? $" -threads {config.FfmpegThreads} "
                     : "";
                 var startInfo = new ProcessStartInfo
                 {
