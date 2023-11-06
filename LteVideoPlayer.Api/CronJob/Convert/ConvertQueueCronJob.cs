@@ -192,14 +192,14 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         true);
 
                     stage = "Delete Original File";
-                    File.Delete(config.StagePath + renameFilePathName);
+                    //File.Delete(config.StagePath + renameFilePathName);
 
                     var originalStagePath = Path.Combine(config.StagePath, convert.OriginalFile.FilePath);
                     if (Directory.GetFiles(originalStagePath).Length == 0 &&
                         Directory.GetDirectories(originalStagePath).Length == 0)
                     {
                         stage = "Delete Original Directory";
-                        Directory.Delete(originalStagePath);
+                        //Directory.Delete(originalStagePath);
                     }
                 }
             }

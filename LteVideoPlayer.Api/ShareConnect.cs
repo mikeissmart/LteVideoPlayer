@@ -27,8 +27,8 @@ namespace LteVideoPlayer.Api
             {
                 _connection = new NetworkConnection(_videoConfig.RootPath,
                     new NetworkCredential(
-                        @"\sambauser",
-                        "SecretPassword1"));
+                        @$"\{_videoConfig.Username}",
+                        _videoConfig.Password));
             }
             catch (Exception ex)
             {

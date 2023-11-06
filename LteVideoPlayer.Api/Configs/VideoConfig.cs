@@ -2,6 +2,8 @@
 {
     public class VideoConfig : IConfig
     {
+        public string Username { get; set; }
+        public string Password { get; set; }
         public string RootPath { get; set; }
         public string VideoName { get; set; }
         public string StageName { get; set; }
