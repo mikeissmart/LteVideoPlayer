@@ -50,16 +50,22 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                     {
                         lock (convertFileService)
                         {
-                            var task = convertFileService.GetIncompleteConvertsAsync(_concurrentConverts * 2);
-                            task.Wait();
-                            nonQueuedConverts = task.Result;
+                            // Lower how many times the database is hit
+                            if (runningTasks.Count != _concurrentConverts)
+                            {
+                                var task = convertFileService.GetIncompleteConvertsAsync(_concurrentConverts * 2);
+                                task.Wait();
+                                nonQueuedConverts = task.Result
+                                    .Where(x => queuedConverts.Where(y => x.Id == y.Id).Count() == 0)
+                                    .ToList();
+                            }
+                            else
+                                nonQueuedConverts = new List<ConvertFileDto>();
                         }
-                        nonQueuedConverts = nonQueuedConverts
-                                .Where(x => queuedConverts.Where(y => x.Id == y.Id).Count() == 0)
-                                .ToList();
+
                         if (nonQueuedConverts.Count == 0 && runningTasks.Count == 0)
                             Task.Delay(6000, _cancellationToken).Wait(_cancellationToken);
-                        else
+                        else if (runningTasks.Count != _concurrentConverts)
                         {
                             while (!_cancellationToken.IsCancellationRequested &&
                                 runningTasks.Count != _concurrentConverts &&
@@ -77,7 +83,6 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                                     _videoConfig
                                     )));
                             }
-
                         }
 
                         for (var i = 0; i < runningTasks.Count; i++)
@@ -90,6 +95,8 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                                 i--;
                             }
                         }
+
+                        Thread.Sleep(1000);
                     }
                     catch (Exception ex)
                     {
@@ -192,14 +199,14 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         true);
 
                     stage = "Delete Original File";
-                    //File.Delete(config.StagePath + renameFilePathName);
+                    File.Delete(config.StagePath + renameFilePathName);
 
                     var originalStagePath = Path.Combine(config.StagePath, convert.OriginalFile.FilePath);
                     if (Directory.GetFiles(originalStagePath).Length == 0 &&
                         Directory.GetDirectories(originalStagePath).Length == 0)
                     {
                         stage = "Delete Original Directory";
-                        //Directory.Delete(originalStagePath);
+                        Directory.Delete(originalStagePath);
                     }
                 }
             }

@@ -13,7 +13,8 @@ var services = builder.Services;
 services
     .AddConfigs(configuration)
     .AddAutoMapper(x => x.AddProfile(new MappingProfile()))
-    .AddDbContext<AppDbContext>(x => x.UseSqlite(configuration.GetConnectionString("SqliteDefaultConnection")))
+    //.AddDbContext<AppDbContext>(x => x.UseSqlite(configuration.GetConnectionString("SqliteDefaultConnection")))
+    .AddDbContext<AppDbContext>(x => x.UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
     .AddServices()
     .AddCronJobs()
     .AddControllers()
