@@ -1,6 +1,6 @@
 ﻿namespace LteVideoPlayer.Api.Dtos
 {
-    public class RemoteData_VideoInfoDto : RemoteData, IRefactorType
+    public class RemoteData_VideoInfoDto : RemoteDataDto, IRefactorType
     {
         public string VideoFile { get; set; }
         public float CurrentTimeSeconds { get; set; }

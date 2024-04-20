@@ -45,30 +45,27 @@ export interface IFileHistoryDto
 	fileEntity?: IFileDto;
 	startedDate?: Date;
 }
-export interface IRemoteData
+export interface IRemoteDataDto
 {
 	profile?: string;
 	channel?: number;
 }
-export interface IRemoteData_MoveSeekDto extends IRemoteData
+export interface IRemoteData_FullScreenDto extends IRemoteDataDto
+{
+}
+export interface IRemoteData_MoveSeekDto extends IRemoteDataDto
 {
 	seekPosition?: number;
 }
-export interface IRemoteData_PauseDto extends IRemoteData
-{
-}
-export interface IRemoteData_PlayDto extends IRemoteData
-{
-}
-export interface IRemoteData_SetSeekDto extends IRemoteData
+export interface IRemoteData_SetSeekDto extends IRemoteDataDto
 {
 	seekPercentPosition?: number;
 }
-export interface IRemoteData_SetVolumeDto extends IRemoteData
+export interface IRemoteData_SetVolumeDto extends IRemoteDataDto
 {
 	volume?: number;
 }
-export interface IRemoteData_VideoInfoDto extends IRemoteData
+export interface IRemoteData_VideoInfoDto extends IRemoteDataDto
 {
 	videoFile?: string;
 	currentTimeSeconds?: number;

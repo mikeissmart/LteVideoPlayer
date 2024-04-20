@@ -22,11 +22,13 @@ namespace LteVideoPlayer.Api.Hubs
         private const string SEND_YOURCHANNEL = "YourChannel";
         private const string SEND_REMOVECHANNEL = "RemoveChannel";
         private const string SEND_RECEIVEVIDEOINFO = "ReceiveVideoInfo";
+        private const string SEND_RECEIVEASKFORVIDEOINFO = "ReceiveAskForVideoInfo";
         private const string SEND_RECEIVESETSEEK = "ReceiveSetSeek";
         private const string SEND_RECEIVEMOVESEEK = "ReceiveMoveSeek";
         private const string SEND_RECEIVEVIDEOPAUSE = "ReceiveVideoPause";
         private const string SEND_RECEIVEVIDEOPLAY = "ReceiveVideoPlay";
         private const string SEND_RECEIVESETVOLUME = "ReceiveSetVolume";
+        private const string SEND_RECEIVEVIDEOFULLSCREEN = "ReceiveVideoFullScreen";
         private const string SEND_ERROR = "Error";
 
         public override async Task OnConnectedAsync()
@@ -146,6 +148,14 @@ namespace LteVideoPlayer.Api.Hubs
                 await Clients.Client(Context.ConnectionId).SendAsync(SEND_ERROR, "Must be join profile first");
         }
 
+        public async Task AskForVideoInfo(RemoteDataDto dto)
+        {
+            if (GetConnectionInfo(out var profile, out var channel))
+                await Clients.OthersInGroup(profile).SendAsync(SEND_RECEIVEASKFORVIDEOINFO, dto);
+            else
+                await Clients.Client(Context.ConnectionId).SendAsync(SEND_ERROR, "Must be join profile first");
+        }
+
         public async Task SetSeek(RemoteData_SetSeekDto dto)
         {
             if (GetConnectionInfo(out var profile, out var channel))
@@ -162,7 +172,7 @@ namespace LteVideoPlayer.Api.Hubs
                 await Clients.Client(Context.ConnectionId).SendAsync(SEND_ERROR, "Must be join profile first");
         }
 
-        public async Task VideoPause(RemoteData_PauseDto dto)
+        public async Task VideoPause(RemoteDataDto dto)
         {
             if (GetConnectionInfo(out var profile, out var channel))
                 await Clients.OthersInGroup(profile).SendAsync(SEND_RECEIVEVIDEOPAUSE, dto);
@@ -170,7 +180,7 @@ namespace LteVideoPlayer.Api.Hubs
                 await Clients.Client(Context.ConnectionId).SendAsync(SEND_ERROR, "Must be join profile first");
         }
 
-        public async Task VideoPlay(RemoteData_PlayDto dto)
+        public async Task VideoPlay(RemoteDataDto dto)
         {
             if (GetConnectionInfo(out var profile, out var channel))
                 await Clients.OthersInGroup(profile).SendAsync(SEND_RECEIVEVIDEOPLAY, dto);
@@ -182,6 +192,14 @@ namespace LteVideoPlayer.Api.Hubs
         {
             if (GetConnectionInfo(out var profile, out var channel))
                 await Clients.OthersInGroup(profile).SendAsync(SEND_RECEIVESETVOLUME, dto);
+            else
+                await Clients.Client(Context.ConnectionId).SendAsync(SEND_ERROR, "Must be join profile first");
+        }
+
+        public async Task VideoFullScreen(RemoteData_FullScreenDto dto)
+        {
+            if (GetConnectionInfo(out var profile, out var channel))
+                await Clients.OthersInGroup(profile).SendAsync(SEND_RECEIVEVIDEOFULLSCREEN, dto);
             else
                 await Clients.Client(Context.ConnectionId).SendAsync(SEND_ERROR, "Must be join profile first");
         }

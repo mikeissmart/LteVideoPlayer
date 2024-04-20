@@ -1,9 +1,9 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { map } from 'rxjs';
 import {
+  IRemoteDataDto,
+  IRemoteData_FullScreenDto,
   IRemoteData_MoveSeekDto,
-  IRemoteData_PauseDto,
-  IRemoteData_PlayDto,
   IRemoteData_SetVolumeDto,
   IRemoteData_VideoInfoDto,
 } from 'src/app/models/models';
@@ -21,7 +21,6 @@ export class RemoteComponent implements OnInit, OnDestroy {
   selectedChannel = 0;
   otherChannels: number[] = [];
   videoInfo: IRemoteData_VideoInfoDto | null = null;
-  volume = 100;
   isConnected = false;
 
   @ViewChild('remoteModal')
@@ -97,9 +96,14 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.remoteHubService.disconnect(() => this.connectRemote());
   }
 
-  clearRemote(): void {
+  onChannelChange(): void {
     if (this.selectedChannel == 0) {
       this.videoInfo = null;
+    } else {
+      this.remoteHubService.sendAskForVideoInfo({
+        profile: this.userProfileService.getCurrentUserProfile()!.name!,
+        channel: this.selectedChannel,
+      } as IRemoteDataDto);
     }
   }
 
@@ -110,6 +114,13 @@ export class RemoteComponent implements OnInit, OnDestroy {
   refreshChannels(): void {
     this.otherChannels = [];
     this.remoteHubService.sendGetChannels();
+  }
+
+  refreshVideoInfo(): void {
+    this.remoteHubService.sendAskForVideoInfo({
+      profile: this.userProfileService.getCurrentUserProfile()!.name!,
+      channel: this.selectedChannel,
+    } as IRemoteDataDto);
   }
 
   reset(): void {
@@ -140,21 +151,28 @@ export class RemoteComponent implements OnInit, OnDestroy {
     this.remoteHubService.sendVideoPlay({
       profile: this.userProfileService.getCurrentUserProfile()!.name!,
       channel: this.selectedChannel,
-    } as IRemoteData_PlayDto);
+    } as IRemoteDataDto);
   }
 
   pause(): void {
     this.remoteHubService.sendVideoPause({
       profile: this.userProfileService.getCurrentUserProfile()!.name!,
       channel: this.selectedChannel,
-    } as IRemoteData_PauseDto);
+    } as IRemoteDataDto);
   }
 
-  changeVolume(): void {
+  changeVolume(volume: number): void {
     this.remoteHubService.sendSetVolume({
       profile: this.userProfileService.getCurrentUserProfile()!.name!,
       channel: this.selectedChannel,
-      volume: this.volume * 1.0,
+      volume: volume * 1.0,
     } as IRemoteData_SetVolumeDto);
+  }
+
+  fullScreen(): void {
+    this.remoteHubService.sendVideoFullScreen({
+      profile: this.userProfileService.getCurrentUserProfile()!.name!,
+      channel: this.selectedChannel,
+    } as IRemoteData_FullScreenDto);
   }
 }

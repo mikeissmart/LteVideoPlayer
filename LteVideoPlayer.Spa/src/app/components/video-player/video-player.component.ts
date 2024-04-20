@@ -1,5 +1,6 @@
 import {
   Component,
+  ElementRef,
   EventEmitter,
   OnInit,
   Output,
@@ -49,28 +50,36 @@ export class VideoPlayerComponent implements OnInit {
       (channel) => (this.myChannel = channel)
     );
 
+    this.remoteHubService.receiveAskForVideoInfo((data) =>
+      this.sendVideoInfo()
+    );
+
     this.remoteHubService.receiveSetSeek((data) => {
       if (this.player != null && this.myChannel == data.channel) {
         this.player.currentTime =
           data.seekPercentPosition! * this.player.duration;
+        this.sendVideoInfo();
       }
     });
 
     this.remoteHubService.receiveMoveSeek((data) => {
       if (this.player != null && this.myChannel == data.channel) {
         this.player.currentTime += data.seekPosition!;
+        this.sendVideoInfo();
       }
     });
 
     this.remoteHubService.receiveVideoPause((data) => {
       if (this.player != null && this.myChannel == data.channel) {
         this.player.pause();
+        this.sendVideoInfo();
       }
     });
 
     this.remoteHubService.receiveVideoPlay((data) => {
       if (this.player != null && this.myChannel == data.channel) {
         this.player.play();
+        this.sendVideoInfo();
       }
     });
 
@@ -80,6 +89,16 @@ export class VideoPlayerComponent implements OnInit {
           this.player.muted = false;
         }
         this.player.volume = data.volume! / 100;
+        this.sendVideoInfo();
+      }
+    });
+
+    this.remoteHubService.receiveVideoFullScreen((data) => {
+      if (this.player != null && this.myChannel == data.channel) {
+        this.player.requestFullscreen({
+          navigationUI: 'show',
+        } as FullscreenOptions);
+        this.sendVideoInfo();
       }
     });
   }
@@ -107,8 +126,10 @@ export class VideoPlayerComponent implements OnInit {
       (result) => (this.nextFile = result),
       (error) => (this.errors = error)
     );
-    this.isModalOpen = true;
-    this.videoPlayerModal?.openModal();
+    if (!this.isModalOpen) {
+      this.isModalOpen = true;
+      this.videoPlayerModal?.openModal();
+    }
   }
 
   closeModal(): void {
@@ -127,9 +148,10 @@ export class VideoPlayerComponent implements OnInit {
       }, 1000);
       setInterval(() => {
         this.sendVideoInfo();
-      }, 1000);
+      }, 30 * 1000);
     } else {
       this.player.play();
+      this.sendVideoInfo();
     }
     this.isDataLoaded = true;
   }

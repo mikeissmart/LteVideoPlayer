@@ -34,10 +34,10 @@
             </button>
             <button
               class="col offset-1 btn btn-primary"
-              (click)="skip(-300)"
+              (click)="skip(-5)"
               [disabled]="!isDataLoaded"
             >
-              << 5 min
+              << 5 sec
             </button>
             <button
               class="col offset-1 btn btn-primary"
@@ -48,10 +48,17 @@
             </button>
             <button
               class="col offset-1 btn btn-primary"
-              (click)="skip(-5)"
+              (click)="skip(-120)"
               [disabled]="!isDataLoaded"
             >
-              << 5 sec
+              << 2 min
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
+              (click)="skip(-300)"
+              [disabled]="!isDataLoaded"
+            >
+              << 5 min
             </button>
           </div>
         </div>
@@ -61,6 +68,13 @@
           <div class="d-flex justify-content-evenly">
             <button
               class="col btn btn-primary"
+              (click)="playerEnded()"
+              [disabled]="nextFile == null"
+            >
+              Play Next
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
               (click)="skip(5)"
               [disabled]="!isDataLoaded"
             >
@@ -75,17 +89,17 @@
             </button>
             <button
               class="col offset-1 btn btn-primary"
+              (click)="skip(120)"
+              [disabled]="!isDataLoaded"
+            >
+              >> 2 min
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
               (click)="skip(300)"
               [disabled]="!isDataLoaded"
             >
               >> 5 min
-            </button>
-            <button
-              class="col offset-1 btn btn-primary"
-              (click)="playerEnded()"
-              [disabled]="nextFile == null"
-            >
-              Play Next
             </button>
           </div>
         </div>
