@@ -9,6 +9,8 @@ export class AppComponent {
   logText = '';
   showLogs = false;
 
+  constructor() {}
+
   ngOnInit(): void {}
 
   @HostListener('window:logger')

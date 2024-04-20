@@ -1,5 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { UserProfileService } from 'src/app/services/api-services/user-profile.service';
+import { ModalComponent } from '../modal/modal.component';
+import { RemoteHubService } from 'src/app/services/hubs/remote-hub.service';
+import { RemoteComponent } from '../remote/remote.component';
 
 @Component({
   selector: 'app-nav-menu',
@@ -8,8 +11,15 @@ import { UserProfileService } from 'src/app/services/api-services/user-profile.s
 })
 export class NavMenuComponent implements OnInit {
   isCollapsed = true;
+  myChannel = 0;
 
-  constructor(public userProfileService: UserProfileService) {}
+  @ViewChild('remote')
+  remote: RemoteComponent | null = null;
+
+  constructor(
+    public userProfileService: UserProfileService,
+    private readonly remoteHubService: RemoteHubService
+  ) {}
 
   ngOnInit(): void {
     const currentUserProfile = this.userProfileService.getCurrentUserProfile();
@@ -19,6 +29,14 @@ export class NavMenuComponent implements OnInit {
         (result) => this.userProfileService.setCurrentUserProfile(result)
       );
     }
+
+    this.remoteHubService.receiveYourChannel(
+      (channel) => (this.myChannel = channel)
+    );
+  }
+
+  openRemote(): void {
+    this.remote?.openModal();
   }
 
   changeUserProfile(): void {

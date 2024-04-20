@@ -45,8 +45,6 @@ export class FileSelectComponent implements OnInit {
   @ViewChild('convertListAll')
   convertListAll: ConvertFileListAllComponent | null = null;
 
-  @ViewChild('videoPlayerModal')
-  videoPlayerModal: ModalComponent | null = null;
   @ViewChild('videoPlayer')
   videoPlayer: VideoPlayerComponent | null = null;
 
@@ -119,7 +117,7 @@ export class FileSelectComponent implements OnInit {
               this.playFile(resutlFiles[0]);
             }
           } else {
-            this.videoPlayerModal?.closeModal();
+            this.videoPlayer?.closeModal();
           }
         },
         (error) => {
@@ -208,7 +206,6 @@ export class FileSelectComponent implements OnInit {
 
   playFile(file: IFileDto): void {
     this.videoPlayer?.playFile(file, this.isStaging);
-    this.videoPlayerModal?.openModal();
   }
 
   onPlayFileChange(file: IFileDto): void {

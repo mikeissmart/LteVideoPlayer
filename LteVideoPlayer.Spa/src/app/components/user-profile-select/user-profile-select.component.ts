@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { IUserProfileDto } from 'src/app/models/models';
 import { UserProfileService } from 'src/app/services/api-services/user-profile.service';
-import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
 import { ModalComponent } from '../modal/modal.component';
 import { UserProfileAddEditComponent } from '../user-profile-add-edit/user-profile-add-edit.component';
 

@@ -1,6 +1,11 @@
-<nav class="navbar navbar-expand-lg">
+<div class="row">
+  <div class="d-flex justify-content-center">
+    Profile {{ this.userProfileService.getCurrentUserProfile()?.name }}, Channel
+    {{ myChannel }}
+  </div>
+</div>
+<nav class="navbar navbar-expand-sm">
   <div class="container-fluid">
-    {{ this.userProfileService.getCurrentUserProfile()?.name }}
     <button
       class="navbar-toggler"
       type="button"
@@ -16,17 +21,27 @@
       id="navbarContent"
       [ngbCollapse]="isCollapsed"
     >
-      <ul class="navbar-nav me-auto"></ul>
+      <ul class="navbar-nav me-auto">
+        <li
+          class="nav-item"
+          *ngIf="this.userProfileService.getCurrentUserProfile() != null"
+        >
+          <button class="nav-link btn btn-link" href="#" (click)="openRemote()">
+            Open Remote
+          </button>
+        </li>
+      </ul>
       <ul class="navbar-nav ms-auto">
         <li
           class="nav-item"
           *ngIf="this.userProfileService.getCurrentUserProfile() != null"
         >
-          <a class="nav-link" href="#" (click)="changeUserProfile()">
+          <button class="nav-link btn btn-link" (click)="changeUserProfile()">
             Change Profile
-          </a>
+          </button>
         </li>
       </ul>
     </div>
   </div>
 </nav>
+<app-remote #remote></app-remote>

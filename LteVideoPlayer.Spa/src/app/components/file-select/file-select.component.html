@@ -118,18 +118,8 @@
     <app-convert-file-list-all #convertListAll></app-convert-file-list-all>
   </div>
 </app-modal>
-<app-modal
-  #videoPlayerModal
-  [showCloseBtn]="true"
-  size="xl"
-  fullscreen="lg"
-  (onClose)="onPlayerClose()"
->
-  <div header>{{ currentDirPathName }}{{ currentFileName }}</div>
-  <div body>
-    <app-video-player
-      #videoPlayer
-      (onFilePlayChange)="onPlayFileChange($event)"
-    ></app-video-player>
-  </div>
-</app-modal>
+<app-video-player
+  #videoPlayer
+  (onFilePlayChange)="onPlayFileChange($event)"
+  (onPlayerClose)="onPlayerClose()"
+></app-video-player>

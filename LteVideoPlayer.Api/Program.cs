@@ -1,5 +1,6 @@
 using LteVideoPlayer.Api;
 using LteVideoPlayer.Api.CronJob.Convert;
+using LteVideoPlayer.Api.Hubs;
 using LteVideoPlayer.Api.Persistance;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -24,7 +25,7 @@ services
         options.SerializerSettings.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
         options.SerializerSettings.TypeNameHandling = TypeNameHandling.None;
     });
-;
+services.AddSignalR();
 
 var app = builder.Build();
 
@@ -50,11 +51,15 @@ using (var scope = app.Services.CreateScope())
 //app.UseHttpsRedirection();
 
 app.UseCors(x => x
-    .AllowAnyOrigin()
+    //.AllowAnyOrigin()
     .AllowAnyMethod()
-    .AllowAnyHeader());
+    .AllowAnyHeader()
+    .SetIsOriginAllowed(origin => true) // allow any origin
+    .AllowCredentials());
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<RemoteHub>("/hub/remotehub");
 
 app.Run();

@@ -1,0 +1,121 @@
+<app-modal #remoteModal [showCloseBtn]="true" size="xl" fullscreen="lg">
+  <div header>Remote</div>
+  <div body>
+    <div class="d-flex justify-content-between text-center mb-3">
+      <div class="col">Is Connected: {{ isConnected }}</div>
+      <button class="col offset-1 btn btn-primary" (click)="reconnectRemote()">
+        Reconnect Remote
+      </button>
+    </div>
+    <div class="d-flex justify-content-between text-center mb-3">
+      <div class="col">My Channel: {{ myChannel }}</div>
+      <button class="col offset-1 btn btn-primary" (click)="resetChannel()">
+        Renew Channel
+      </button>
+    </div>
+    <hr />
+    <div class="d-flex justify-content-between text-center mb-3">
+      <div class="col">Selected Channel: {{ selectedChannel }}</div>
+      <select
+        class="form-select col"
+        name="channels"
+        id="channels"
+        [(ngModel)]="selectedChannel"
+        (ngModelChange)="clearRemote()"
+      >
+        <option [value]="0">Select Channel</option>
+        <option *ngFor="let channel of otherChannels" [ngValue]="channel">
+          {{ channel }}
+        </option>
+      </select>
+      <div class="col">
+        <button
+          class="col offset-1 btn btn-primary"
+          (click)="refreshChannels()"
+        >
+          Refresh Channels
+        </button>
+      </div>
+    </div>
+    <div *ngIf="selectedChannel != 0">
+      <div class="row mb-3">
+        <div class="col">Video Playing: {{ videoInfo?.videoFile }}</div>
+      </div>
+      <div class="row mb-3">
+        <div class="col" *ngIf="videoInfo == null">Duration:</div>
+        <div class="col" *ngIf="videoInfo != null">
+          Duration: {{ floorNumber(videoInfo.currentTimeSeconds) }} /
+          {{ floorNumber(videoInfo.maxTimeSeconds) }}
+        </div>
+      </div>
+      <hr />
+      <div class="d-flex justify-content-center mb-3">
+        <label class="form-label col" for="symbol"
+          >Volume: {{ videoInfo?.volume }}</label
+        >
+        <select
+          class="form-select col offset-1"
+          name="channels"
+          id="channels"
+          [(ngModel)]="volume"
+        >
+          <option [ngValue]="0">0</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="30">30</option>
+          <option [ngValue]="40">40</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="60">60</option>
+          <option [ngValue]="70">70</option>
+          <option [ngValue]="80">80</option>
+          <option [ngValue]="90">90</option>
+          <option [ngValue]="100">100</option>
+        </select>
+        <button class="col offset-1 btn btn-primary" (click)="changeVolume()">
+          Change Volume
+        </button>
+      </div>
+      <hr />
+      <div class="d-flex justify-content-center mb-3">
+        <button class="col btn btn-primary" (click)="reset()">Restart</button>
+        <button class="col offset-1 btn btn-primary" (click)="next()">
+          Play Next
+        </button>
+        <button
+          class="col offset-1 btn btn-primary"
+          (click)="play()"
+          *ngIf="!videoInfo?.isPlaying"
+        >
+          Play
+        </button>
+        <button
+          class="col offset-1 btn btn-primary"
+          (click)="pause()"
+          *ngIf="videoInfo?.isPlaying"
+        >
+          Pause
+        </button>
+      </div>
+      <div class="d-flex justify-content-center mb-3">
+        <button class="col btn btn-primary" (click)="skip(-300)">
+          << 5 min
+        </button>
+        <button class="col offset-1 btn btn-primary" (click)="skip(-30)">
+          << 30 sec
+        </button>
+        <button class="col offset-1 btn btn-primary" (click)="skip(-5)">
+          << 5 sec
+        </button>
+      </div>
+      <div class="d-flex justify-content-center">
+        <button class="col btn btn-primary" (click)="skip(5)">>> 5 sec</button>
+        <button class="col offset-1 btn btn-primary" (click)="skip(30)">
+          >> 30 sec
+        </button>
+        <button class="col offset-1 btn btn-primary" (click)="skip(300)">
+          >> 5 min
+        </button>
+      </div>
+    </div>
+  </div>
+</app-modal>

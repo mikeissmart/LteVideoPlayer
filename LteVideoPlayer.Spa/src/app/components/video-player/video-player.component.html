@@ -1,77 +1,95 @@
-<div *ngIf="currentFile != null">
-  <video
-    class="pb-3"
-    width="100%"
-    #player
-    controls
-    (loadeddata)="onLoadedData(player)"
-    (ended)="playerEnded()"
-    [src]="
-      currentFile != null ? directoryService.streamFileUrl(currentFile!) : ''
-    "
-    crossorigin
-  ></video>
-  <div class="row">
-    <div class="col-10 offset-1">
-      <div class="d-flex justify-content-between">
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="restartPlayer()"
-          [disabled]="!isDataLoaded"
-        >
-          Restart
-        </button>
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="skip(-300)"
-          [disabled]="!isDataLoaded"
-        >
-          << 5 min
-        </button>
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="skip(-30)"
-          [disabled]="!isDataLoaded"
-        >
-          << 30 sec
-        </button>
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="skip(-5)"
-          [disabled]="!isDataLoaded"
-        >
-          << 5 sec
-        </button>
-        <span>|</span>
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="skip(5)"
-          [disabled]="!isDataLoaded"
-        >
-          >> 5 sec
-        </button>
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="skip(30)"
-          [disabled]="!isDataLoaded"
-        >
-          >> 30 sec
-        </button>
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="skip(300)"
-          [disabled]="!isDataLoaded"
-        >
-          >> 5 min
-        </button>
-        <button
-          class="col-1 btn btn-sm btn-primary text-nowrap"
-          (click)="playerEnded()"
-          [disabled]="nextFile == null"
-        >
-          Play Next
-        </button>
+<app-modal
+  #videoPlayerModal
+  [showCloseBtn]="true"
+  size="xl"
+  fullscreen="lg"
+  (onClose)="clearPlayer()"
+>
+  <div header>{{ currentFile?.filePathName }}</div>
+  <div body>
+    <div *ngIf="currentFile != null">
+      <video
+        class="pb-3"
+        width="100%"
+        #player
+        controls
+        (loadeddata)="onLoadedData(player)"
+        (ended)="playerEnded()"
+        [src]="
+          currentFile != null
+            ? directoryService.streamFileUrl(currentFile!)
+            : ''
+        "
+        crossorigin
+      ></video>
+      <div class="row mb-3">
+        <div class="col-lg-12">
+          <div class="d-flex justify-content-evenly">
+            <button
+              class="col btn btn-primary"
+              (click)="restartPlayer()"
+              [disabled]="!isDataLoaded"
+            >
+              Restart
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
+              (click)="skip(-300)"
+              [disabled]="!isDataLoaded"
+            >
+              << 5 min
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
+              (click)="skip(-30)"
+              [disabled]="!isDataLoaded"
+            >
+              << 30 sec
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
+              (click)="skip(-5)"
+              [disabled]="!isDataLoaded"
+            >
+              << 5 sec
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="d-flex justify-content-evenly">
+            <button
+              class="col btn btn-primary"
+              (click)="skip(5)"
+              [disabled]="!isDataLoaded"
+            >
+              >> 5 sec
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
+              (click)="skip(30)"
+              [disabled]="!isDataLoaded"
+            >
+              >> 30 sec
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
+              (click)="skip(300)"
+              [disabled]="!isDataLoaded"
+            >
+              >> 5 min
+            </button>
+            <button
+              class="col offset-1 btn btn-primary"
+              (click)="playerEnded()"
+              [disabled]="nextFile == null"
+            >
+              Play Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</app-modal>
