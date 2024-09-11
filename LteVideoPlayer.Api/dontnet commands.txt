@@ -1,0 +1,12 @@
+Manage Migrations
+	Prerequisites
+		install sdk 2.0 https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-2.1.202-windows-x64-installer
+		add nuget package Microsoft.EntityFrameworkCore.Design for Marketeer.Persistance.Database project
+	Add migration
+		dotnet ef migrations add Update_ConvertFile_AudioStream --project LteVideoPlayer.Api
+	Update database
+		dotnet ef database update --project LteVideoPlayer.ApiS
+	Remove migration
+		dotnet ef migrations remove --project LteVideoPlayer.Api
+	Rollback migration
+		dotnet ef database update {} --project LteVideoPlayer.Api
