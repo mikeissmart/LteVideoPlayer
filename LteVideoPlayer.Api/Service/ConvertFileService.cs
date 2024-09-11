@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using LteVideoPlayer.Api.Configs;
 using LteVideoPlayer.Api.Dtos;
 using LteVideoPlayer.Api.Entities;
 using LteVideoPlayer.Api.Persistance;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace LteVideoPlayer.Api.Service
 {
@@ -14,6 +16,7 @@ namespace LteVideoPlayer.Api.Service
         Task<List<ConvertFileDto>> GetConvertFileByOriginalFileAsync(FileDto file);
         Task<ConvertFileDto> GetConvertFileByIdAsync(int convertFileId);
         Task<ConvertFileDto> AddConvertFileAsync(CreateConvertDto convert, ModelStateDictionary? modelState = null);
+        Task<ConvertManyFileDto> AddConvertManyFileAsync(CreateManyConvertDto convert, ModelStateDictionary? modelState = null);
         Task<ConvertFileDto> UpdateConvertAsync(ConvertFileDto convert);
         Task DeleteConvertAsync(ConvertFileDto convert);
     }
@@ -115,52 +118,31 @@ namespace LteVideoPlayer.Api.Service
         {
             try
             {
-                if (string.IsNullOrEmpty(convert.OriginalFile.FilePath))
-                {
-                    var error = "Must have OriginalFile.FilePath";
-                    modelState?.AddModelError("OriginalFile.FilePath", error);
-                    throw new ArgumentException(error);
-                }
-                if (string.IsNullOrEmpty(convert.OriginalFile.FileName))
-                {
-                    var error = "Must have OriginalFile.FileName";
-                    modelState?.AddModelError("OriginalFile.FileName", error);
-                    throw new ArgumentException(error);
-                }
-                if (string.IsNullOrEmpty(convert.ConvertedFile.FilePath))
-                {
-                    var error = "Must have ConvertedFile.FilePath";
-                    modelState?.AddModelError("ConvertedFile.FilePath", error);
-                    throw new ArgumentException(error);
-                }
-                if (string.IsNullOrEmpty(convert.ConvertedFile.FileName))
-                {
-                    var error = "Must have ConvertedFile.FileName";
-                    modelState?.AddModelError("ConvertedFile.FileName", error);
-                    throw new ArgumentException(error);
-                }
-
-                var entity = _mapper.Map<ConvertFile>(convert);
-                if (_appDbContext.ConvertFiles.Any(x => x.EndedDate == null &&
-                    x.OriginalFile.FileName == entity.OriginalFile.FileName &&
-                    x.OriginalFile.FilePath == entity.OriginalFile.FilePath))
-                {
-                    var error = "File already queued to be converted";
-                    modelState?.AddModelError("ConvertedFile", error);
-                    throw new ArgumentException(error);
-                }
-
-                var addEntity = await _appDbContext.ConvertFiles.AddAsync(entity);
-                await _appDbContext.SaveChangesAsync();
-                _appDbContext.Entry(entity).State = EntityState.Detached;
-
-                return await GetConvertFileByIdAsync(entity.Id);
+                return await ConvertAsync(convert, modelState);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
                 throw;
             }
+        }
+
+        public async Task<ConvertManyFileDto> AddConvertManyFileAsync(CreateManyConvertDto convert, ModelStateDictionary? modelState = null)
+        {
+            var result = new ConvertManyFileDto();
+            foreach (var item in convert.Converts)
+            {
+                try
+                {
+                    result.Converts.Add(await ConvertAsync(item));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.Message);
+                }
+            }
+
+            return result;
         }
 
         public async Task<ConvertFileDto> UpdateConvertAsync(ConvertFileDto convert)
@@ -171,6 +153,64 @@ namespace LteVideoPlayer.Api.Service
             _appDbContext.Entry(entity).State = EntityState.Detached;
 
             return convert;
+        }
+
+        private async Task<ConvertFileDto> ConvertAsync(CreateConvertDto convert, ModelStateDictionary? modelState = null)
+        {
+            var stage = "";
+            var error = "";
+
+            if (string.IsNullOrEmpty(convert.OriginalFile.FilePath))
+            {
+                stage = "OriginalFile.FilePath";
+                error = "Must have OriginalFile.FilePath";
+            }
+            if (string.IsNullOrEmpty(convert.OriginalFile.FileName))
+            {
+                stage = "OriginalFile.FileName";
+                error = "Must have OriginalFile.FileName";
+            }
+            if (string.IsNullOrEmpty(convert.ConvertedFile.FilePath))
+            {
+                stage = "ConvertedFile.FilePath";
+                error = "Must have ConvertedFile.FilePath";
+            }
+            if (string.IsNullOrEmpty(convert.ConvertedFile.FileName))
+            {
+                stage = "ConvertedFile.FileName";
+                error = "Must have ConvertedFile.FileName";
+            }
+
+            var entity = _mapper.Map<ConvertFile>(convert);
+            if (_appDbContext.ConvertFiles.Any(x => x.EndedDate == null &&
+                x.OriginalFile.FileName == entity.OriginalFile.FileName &&
+                x.OriginalFile.FilePath == entity.OriginalFile.FilePath))
+            {
+                stage = "ConvertedFile";
+                error = "File already queued to be converted";
+            }
+
+            if (stage != "")
+            {
+                modelState?.AddModelError($"{stage}: {entity.OriginalFile.FileName}", error);
+                throw new ArgumentException(error);
+            }
+
+            var lastConvert = _appDbContext.ConvertFiles
+                .OrderByDescending(x => x.CreatedDate)
+                .FirstOrDefault();
+
+            if (lastConvert != null)
+            {
+                if (lastConvert.CreatedDate.AddSeconds(1) > entity.CreatedDate)
+                    entity.CreatedDate = lastConvert.CreatedDate.AddSeconds(1);
+            }
+
+            await _appDbContext.ConvertFiles.AddAsync(entity);
+            await _appDbContext.SaveChangesAsync();
+            _appDbContext.Entry(entity).State = EntityState.Detached;
+
+            return await GetConvertFileByIdAsync(entity.Id);
         }
 
         public async Task DeleteConvertAsync(ConvertFileDto convert)

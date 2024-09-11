@@ -40,10 +40,13 @@ using (var scope = app.Services.CreateScope())
         .GetRequiredService<AppDbContext>()
         .Database
         .Migrate();
-    // Start ConvertQueueCronJob
+
     scope.ServiceProvider
         .GetRequiredService<ConvertQueueCronJob>()
         .StartQueue();
+    scope.ServiceProvider
+        .GetRequiredService<ThumbnailCronJob>()
+        .StartThumbnails();
 }
 
 // Configure the HTTP request pipeline.

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { ICreateConvertDto, IDirDto, IFileDto } from 'src/app/models/models';
+import { IConvertFileQueueDto, IConvertManyFileDto, ICreateConvertDto, IFileDto } from 'src/app/models/models';
 import { ConvertFileService } from 'src/app/services/api-services/convert-file.service';
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
 
@@ -12,7 +12,8 @@ export class ConvertFileAddManyComponent implements OnInit {
   errors: ModelStateErrors | null = null;
   originalPath = '';
   convertPath = '';
-  convertItems: any[] = [];
+  convertItems: IConvertFileQueueDto[] = [];
+  audioStream = 0;
 
   @Output()
   onCovertFilesAllSaved = new EventEmitter();
@@ -20,10 +21,12 @@ export class ConvertFileAddManyComponent implements OnInit {
   onCovertFileQueued = new EventEmitter<string>();
   @Output()
   onCancel = new EventEmitter();
+  @Output()
+  onVideoMeta = new EventEmitter<IFileDto>();
 
-  constructor(private readonly convertFileService: ConvertFileService) {}
+  constructor(private readonly convertFileService: ConvertFileService) { }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   setOriginals(dirPathName: string, files: IFileDto[]): void {
     this.convertItems = [];
@@ -36,10 +39,10 @@ export class ConvertFileAddManyComponent implements OnInit {
         this.convertItems.push({
           index: i,
           skip: false,
-          originalName: x.fileName!,
           convertName: `Episode ${i < 9 ? '0' : ''}${i + 1}`,
           appendConvertName: '',
-        });
+          file: x
+        } as IConvertFileQueueDto);
       });
   }
 
@@ -58,7 +61,60 @@ export class ConvertFileAddManyComponent implements OnInit {
   saveConvertFiles(): void {
     this.errors = null;
 
+    var converts = { converts: [] } as IConvertManyFileDto;
     this.convertItems.forEach((x) => {
+      if (!x.skip) {
+        converts.converts!.push({
+          originalFile: x.file,
+          convertedFile: {
+            fileName: `${x.convertName}${x.appendConvertName}.mp4`,
+            filePath:
+              this.convertPath +
+              (this.convertPath[this.convertPath.length - 1] != '\\'
+                ? '\\'
+                : '')
+          } as IFileDto,
+          audioStream: this.audioStream
+        } as ICreateConvertDto);
+      }
+    });
+
+    this.convertFileService.addManyConvert(converts,
+      (result) => {
+        result.converts?.forEach((x) => {
+          this.onCovertFileQueued.emit(x.originalFile?.fileName);
+        });
+
+        this.convertItems = this.convertItems.filter(
+          (y) => {
+            var r = result.converts?.find((x) =>
+              y.file!.filePathName == x.originalFile!.fileName
+            );
+            return r === undefined;
+          });
+        this.processCompletedConverts();
+      },
+      (error) => {
+        if (this.errors == null) {
+          this.errors = error;
+        } else {
+          error?.errors.forEach((x) => {
+            const curErrors = this.errors!.errors.filter(
+              (y) => y.property == x.property
+            );
+            if (curErrors.length == 0) {
+              // new prop error
+              this.errors!.errors.push(x);
+            } else {
+              // append error desc
+              curErrors[0].descriptions.push(...x.descriptions);
+            }
+          });
+        }
+      }
+    );
+
+    /*this.convertItems.forEach((x) => {
       if (!x.skip) {
         this.convertFileService.addConvert(
           {
@@ -102,7 +158,11 @@ export class ConvertFileAddManyComponent implements OnInit {
           }
         );
       }
-    });
+    });*/
+  }
+
+  displayMetaInfo(): void {
+    this.onVideoMeta.emit(this.convertItems[0].file);
   }
 
   processCompletedConverts(): void {

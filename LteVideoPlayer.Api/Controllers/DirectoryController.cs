@@ -90,5 +90,87 @@ namespace LteVideoPlayer.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("GetFolderThunbmail")]
+        public IActionResult GetFolderThunbmail([FromQuery] string filePathName)
+        {
+            try
+            {
+                var thumbnail = _directoryService.GetFolderThumbnail(filePathName);
+                if (thumbnail == "")
+                    thumbnail = _videoConfig.DefaultThumbnailFile;
+
+                var image = System.IO.File.OpenRead(thumbnail);
+                return File(image, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("Directory", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpGet("GetFileThumbnail")]
+        public IActionResult GetFileThumbnail([FromQuery] string filePathName)
+        {
+            try
+            {
+                var thumbnail = _directoryService.GetFileThumbnail(filePathName);
+                if (thumbnail == "")
+                    thumbnail = _videoConfig.DefaultThumbnailFile;
+
+                var image = System.IO.File.OpenRead(thumbnail);
+                return File(image, "image/jpeg");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("Directory", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpGet("HasFileThumbnail")]
+        public IActionResult HasFileThumbnail([FromQuery] string filePathName)
+        {
+            try
+            {
+                var thumbnail = _directoryService.GetFileThumbnail(filePathName);
+                return Ok(thumbnail != "");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("Directory", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpPost("DeleteThumbnail")]
+        public IActionResult DeleteThumbnail([FromBody] StringDto data)
+        {
+            try
+            {
+                _directoryService.DeleteThumbnail(data.Data);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("Directory", ex.Message);
+                return BadRequest(ModelState);
+            }
+        }
+
+        [HttpGet("GetVideoMeta")]
+        public IActionResult GetVideoMeta([FromQuery] string filePathName, [FromQuery] bool isStaging)
+        {
+            try
+            {
+                var result = _directoryService.GetVideoMeta(filePathName, isStaging);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

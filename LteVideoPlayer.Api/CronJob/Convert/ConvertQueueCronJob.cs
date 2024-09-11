@@ -1,10 +1,7 @@
 ﻿using LteVideoPlayer.Api.Configs;
 using LteVideoPlayer.Api.Dtos;
+using LteVideoPlayer.Api.Helpers;
 using LteVideoPlayer.Api.Service;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Text;
 
 namespace LteVideoPlayer.Api.CronJob.Convert
 {
@@ -40,6 +37,11 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<ConvertQueueCronJob>>();
                 var convertFileService = scope.ServiceProvider.GetRequiredService<IConvertFileService>();
                 var directoryService = scope.ServiceProvider.GetRequiredService<IDirectoryService>();
+
+                if (!Directory.Exists(_videoConfig.VideoPath))
+                    Directory.CreateDirectory(_videoConfig.VideoPath);
+                if (!Directory.Exists(_videoConfig.StagePath))
+                    Directory.CreateDirectory(_videoConfig.StagePath);
 
                 var runningTasks = new List<Task>();
                 var queuedConverts = new List<ConvertFileDto>();
@@ -138,13 +140,23 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 }
 
                 var threadStr = config.FfmpegThreads > 0
+                    ? $"-threads {config.FfmpegThreads}"
+                    : "";
+
+                ProcessHelper.RunProcess(
+                    config.FfmpegFile,
+                    $@"-i ""{config.StagePath + renameFilePathName}"" {threadStr} -map 0:v:0 -map 0:a:{convert.AudioStream} -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""",
+                    out var output,
+                    out var error);
+
+                /*var threadStr = config.FfmpegThreads > 0
                     ? $" -threads {config.FfmpegThreads} "
                     : "";
-                var startInfo = new ProcessStartInfo
+                var startInfo = new ProcessStartInfoS
                 {
                     FileName = config.FfmpegFile,
                     // TODO added -map 0:v:0 -map 0:a:1, to select different audio track for english
-                    Arguments = $@"-i ""{config.StagePath + renameFilePathName}""{threadStr}-c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""",
+                    Arguments = $@"-i ""{config.StagePath + renameFilePathName}"" {threadStr} -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""",
                     CreateNoWindow = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -175,11 +187,14 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         return;
                     }
                 }
-                convert.Output = output.ToString();
+                convert.Output = output.ToString();*/
 
                 stage = "Check if convert sucessfull";
                 if (!File.Exists(config.StagePath + convertedFilePathName))
+                {
                     convert.Errored = true;
+                    convert.Output = error;
+                }
                 else
                 {
                     stage = "Create Convert directory";
@@ -200,7 +215,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         true);
 
                     stage = "Delete Original File";
-                    //File.Delete(config.StagePath + renameFilePathName);
+                    File.Delete(config.StagePath + renameFilePathName);
 
                     var originalStagePath = Path.Combine(config.StagePath, convert.OriginalFile.FilePath);
                     if (Directory.GetFiles(originalStagePath).Length == 0 &&

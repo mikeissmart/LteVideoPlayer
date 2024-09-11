@@ -38,7 +38,8 @@ namespace LteVideoPlayer.Api
 		public static IServiceCollection AddCronJobs(this IServiceCollection services)
         {
 			services.AddSingleton<ConvertQueueCronJob>();
-			services.AddSingleton<ShareConnect>();
+            services.AddSingleton<ThumbnailCronJob>();
+            services.AddSingleton<ShareConnect>();
 
 			return services;
         }

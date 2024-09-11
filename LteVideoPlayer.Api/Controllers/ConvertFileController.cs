@@ -56,5 +56,18 @@ namespace LteVideoPlayer.Api.Controllers
                 return BadRequest(ModelState);
             }
         }
+
+        [HttpPost("AddManyConvert")]
+        public async Task<IActionResult> AddManyConvert([FromBody] CreateManyConvertDto convert)
+        {
+            try
+            {
+                return Ok(await _convertFileService.AddConvertManyFileAsync(convert, ModelState));
+            }
+            catch
+            {
+                return BadRequest(ModelState);
+            }
+        }
     }
 }

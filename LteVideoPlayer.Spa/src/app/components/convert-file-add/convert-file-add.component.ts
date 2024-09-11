@@ -18,11 +18,14 @@ export class ConvertFileAddComponent implements OnInit {
   originalFile: IFileDto | null = null;
   convertFilePath = '';
   convertFileName = '';
+  audioStream = 0;
 
   @Output()
   onCovertFileSaved = new EventEmitter<IConvertFileDto>();
   @Output()
   onCancel = new EventEmitter();
+  @Output()
+  onVideoMeta = new EventEmitter<IFileDto>();
 
   constructor(private readonly convertFileService: ConvertFileService) {}
 
@@ -55,9 +58,14 @@ export class ConvertFileAddComponent implements OnInit {
               ? '\\'
               : ''),
         } as IFileDto,
+        audioStream: this.audioStream
       } as ICreateConvertDto,
       (result) => this.onCovertFileSaved.emit(result),
       (error) => (this.errors = error)
     );
+  }
+
+  displayMetaInfo(): void {
+    this.onVideoMeta.emit(this.originalFile!);
   }
 }

@@ -23,6 +23,7 @@ import { ConvertFileListAllComponent } from './components/convert-file-list-all/
 import { ConvertFileAddManyComponent } from './components/convert-file-add-many/convert-file-add-many.component';
 import { VideoPlayerComponent } from './components/video-player/video-player.component';
 import { RemoteComponent } from './components/remote/remote.component';
+import { VideoMetaComponent } from './components/video-meta/video-meta.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { RemoteComponent } from './components/remote/remote.component';
     ConvertFileAddManyComponent,
     VideoPlayerComponent,
     RemoteComponent,
+    VideoMetaComponent,
   ],
   imports: [
     BrowserModule,

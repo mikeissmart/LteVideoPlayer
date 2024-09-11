@@ -6,7 +6,7 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { IDirDto, IDirsAndFilesDto, IFileDto } from 'src/app/models/models';
+import { IDirDto, IDirsAndFilesDto, IFileDto, IMetaDataDto } from 'src/app/models/models';
 import { DirectoryService } from 'src/app/services/api-services/directory.service';
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
 import { ConvertFileAddManyComponent } from '../convert-file-add-many/convert-file-add-many.component';
@@ -29,6 +29,7 @@ export class FileSelectComponent implements OnInit {
   } as IDirsAndFilesDto;
   isStaging = false;
   isFirstChange = true;
+  metaData: IMetaDataDto | null = null;
 
   @ViewChild('convertAllModal')
   convertAllModal: ModalComponent | null = null;
@@ -48,6 +49,9 @@ export class FileSelectComponent implements OnInit {
   @ViewChild('videoPlayer')
   videoPlayer: VideoPlayerComponent | null = null;
 
+  @ViewChild('videoMeta')
+  videoMetaModal: ModalComponent | null = null;
+
   @Input()
   isAdmin = false;
 
@@ -61,7 +65,7 @@ export class FileSelectComponent implements OnInit {
   onDirOrFileChange = new EventEmitter<string | null>();
 
   constructor(
-    private readonly directoryService: DirectoryService,
+    public readonly directoryService: DirectoryService,
     private readonly titleService: Title
   ) {}
 
@@ -226,5 +230,14 @@ export class FileSelectComponent implements OnInit {
     } else {
       this.titleService.setTitle('LteVideoPlayer');
     }
+  }
+
+  onVideoMeta(file: IFileDto): void {
+    this.directoryService.getVideoMeta(file, this.isStaging,
+      (result) => {
+        this.metaData = result;
+        this.videoMetaModal?.openModal();
+      }
+    );
   }
 }

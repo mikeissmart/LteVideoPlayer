@@ -10,6 +10,7 @@ namespace LteVideoPlayer.Api.Entities
         public bool Errored { get; set; }
         public FileEntity OriginalFile { get; set; } = new FileEntity();
         public FileEntity ConvertedFile { get; set; } = new FileEntity();
+        public int AudioStream { get; set; } = 0;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? StartedDate { get; set; }
         public DateTime? EndedDate { get; set; }

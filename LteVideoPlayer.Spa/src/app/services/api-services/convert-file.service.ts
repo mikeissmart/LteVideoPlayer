@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import {
   IConvertFileDto,
+  IConvertManyFileDto,
   ICreateConvertDto,
+  ICreateManyConvertDto,
   IFileDto,
+  IStringDto,
 } from 'src/app/models/models';
 import { ApiHttpService } from '../http/api-http.service';
 import { ModelStateErrors } from '../http/ModelStateErrors';
@@ -46,6 +49,19 @@ export class ConvertFileService {
   ): void {
     this.httpClient.post(
       this.baseUri + 'AddConvert',
+      convertFile,
+      callback,
+      errorCallback
+    );
+  }
+  
+  addManyConvert(
+    convertFile: ICreateManyConvertDto,
+    callback: (convertVideoFile: IConvertManyFileDto) => void,
+    errorCallback?: (errors: ModelStateErrors | null) => void
+  ): void {
+    this.httpClient.post(
+      this.baseUri + 'AddManyConvert',
       convertFile,
       callback,
       errorCallback

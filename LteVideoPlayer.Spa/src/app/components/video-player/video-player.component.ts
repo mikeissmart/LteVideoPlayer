@@ -28,6 +28,7 @@ export class VideoPlayerComponent implements OnInit {
   isFirstPlay = true;
   isDataLoaded = false;
   isModalOpen = false;
+  hasThumbnail = false;
   myChannel = 0;
 
   @ViewChild('videoPlayerModal')
@@ -37,6 +38,8 @@ export class VideoPlayerComponent implements OnInit {
   onFilePlayChange = new EventEmitter<IFileDto>();
   @Output()
   onPlayerClose = new EventEmitter();
+  @Output()
+  onVideoMeta = new EventEmitter<IFileDto>();
 
   constructor(
     public directoryService: DirectoryService,
@@ -152,6 +155,7 @@ export class VideoPlayerComponent implements OnInit {
     } else {
       this.player.play();
       this.sendVideoInfo();
+      this.checkThumbnail();
     }
     this.isDataLoaded = true;
   }
@@ -191,5 +195,23 @@ export class VideoPlayerComponent implements OnInit {
           : 0,
       isPlaying: !this.player?.paused,
     } as IRemoteData_VideoInfoDto);
+  }
+
+  checkThumbnail(): void {
+    this.directoryService.hasFileThumbnail(this.currentFile!.filePathName!,
+      (exists: boolean) => {
+        this.hasThumbnail = exists;
+      }
+    );
+  }
+
+  deleteThumbnail(): void {
+    this.directoryService.deleteThumbnail(this.currentFile!.filePathName!, () => {
+      this.checkThumbnail();
+    });
+  }
+
+  displayMetaInfo(): void {
+    this.onVideoMeta.emit(this.currentFile!);
   }
 }

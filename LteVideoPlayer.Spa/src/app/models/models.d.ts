@@ -9,14 +9,33 @@ export interface IConvertFileDto
 	errored?: boolean;
 	originalFile?: IFileDto;
 	convertedFile?: IFileDto;
+	audioStream?: number;
 	createdDate?: Date;
 	startedDate?: Date;
 	endedDate?: Date;
+}
+export interface IConvertFileQueueDto
+{
+	index?: number;
+	skip?: boolean;
+	convertQueued?: boolean;
+	convertName?: string;
+	appendConvertName?: string;
+	file?: IFileDto;
+}
+export interface IConvertManyFileDto
+{
+	converts?: IConvertFileDto[];
 }
 export interface ICreateConvertDto
 {
 	originalFile?: IFileDto;
 	convertedFile?: IFileDto;
+	audioStream?: number;
+}
+export interface ICreateManyConvertDto
+{
+	converts?: ICreateConvertDto[];
 }
 export interface IDirDto
 {
@@ -44,6 +63,11 @@ export interface IFileHistoryDto
 	percentWatched?: number;
 	fileEntity?: IFileDto;
 	startedDate?: Date;
+}
+export interface IMetaDataDto
+{
+	output?: string;
+	error?: string;
 }
 export interface IRemoteDataDto
 {

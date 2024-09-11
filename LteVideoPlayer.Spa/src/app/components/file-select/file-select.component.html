@@ -49,7 +49,7 @@
   </div>
   <div class="col-10 col-lg-11">..</div>
 </div>
-<div class="row pb-1" *ngFor="let item of dirsAndFiles.dirs">
+<!--<div class="row pb-1" *ngFor="let item of dirsAndFiles.dirs">
   <div class="col-2 col-lg-1">
     <button class="btn btn-sm btn-primary form-control" (click)="pushDir(item)">
       Open
@@ -82,7 +82,61 @@
   <div class="col-10 col-lg-11">
     {{ item.fileName }}
   </div>
+</div>-->
+<div class="row pb-1">
+  <div class="col-3 p-3" *ngFor="let item of dirsAndFiles.dirs">
+    <div *ngIf="!isStaging" class="img-container pb-3">
+      <img class="" [src]="directoryService.getFolderThumbnail(item.dirPathName!)" />
+    </div>
+    <div class="row justify-content-center">
+      <button class="btn btn-sm btn-primary form-control" (click)="pushDir(item)">
+        {{ item.dirName }}
+      </button>
+    </div>
+  </div>
 </div>
+<hr *ngIf="dirsAndFiles.dirs!.length > 0 && dirsAndFiles.files!.length > 0">
+<div class="row pb-1">
+  <div class="col-3 p-3" *ngFor="let item of dirsAndFiles.files">
+    <div *ngIf="!isStaging" class="img-container pb-3">
+      <img class="" [src]="directoryService.getFileThumbnail(item.filePathName!)" />
+    </div>
+    <div class="row justify-content-center">
+      <button *ngIf="!isStaging" class="btn btn-sm btn-primary form-control"
+        (click)="playFile(item)">
+        {{ item.fileName }}
+      </button>
+      <button *ngIf="isStaging" class="btn btn-sm form-control" [ngClass]="item.convertQueued ? 'btn-danger' : 'btn-primary'" [disabled]="item.convertQueued"
+        (click)="convertFile(item)">
+        {{ item.convertQueued ? 'Converting' : 'Convert' }} - {{ item.fileName }}
+      </button>
+    </div>
+  </div>
+
+  <!--<div class="col-2 col-lg-1">
+    <button
+      class="btn btn-sm btn-success form-control"
+      *ngIf="!isStaging"
+      (click)="playFile(item)"
+    >
+      Play
+    </button>
+    <button
+      class="btn btn-sm btn-success form-control"
+      *ngIf="isStaging && item.convertQueued == false"
+      (click)="convertFile(item)"
+    >
+      Convert
+    </button>
+    <span class="text-danger" *ngIf="isStaging && item.convertQueued == true">
+      Converting
+    </span>
+  </div>
+  <div class="col-10 col-lg-11">
+    {{ item.fileName }}
+  </div>
+</div>-->
+
 <app-modal #convertAllModal [showCloseBtn]="false" size="xl">
   <div header>
     <h4>Queue Convert Directory</h4>
@@ -93,6 +147,7 @@
       (onCovertFileQueued)="setConvertQueued($event)"
       (onCovertFilesAllSaved)="convertAllModal.closeModal()"
       (onCancel)="convertAllModal.closeModal()"
+      (onVideoMeta)="onVideoMeta($event)"
     ></app-convert-file-add-many>
   </div>
 </app-modal>
@@ -106,6 +161,7 @@
         #convert
         (onCovertFileSaved)="convertModal.closeModal()"
         (onCancel)="convertModal.closeModal()"
+        (onVideoMeta)="onVideoMeta($event)"
       ></app-convert-file-add>
     </p>
   </div>
@@ -122,4 +178,17 @@
   #videoPlayer
   (onFilePlayChange)="onPlayFileChange($event)"
   (onPlayerClose)="onPlayerClose()"
+  (onVideoMeta)="onVideoMeta($event)"
 ></app-video-player>
+<app-modal #videoMeta [showCloseBtn]="true" size="xl">
+  <div header>
+    <h4>Video Meta</h4>
+  </div>
+  <div body>
+    <p>Output</p>
+    <p>{{ metaData?.output }}</p>
+    <hr>
+    <p>Error</p>
+    <p>{{ metaData?.error }}</p>
+  </div>
+</app-modal>

@@ -6,5 +6,6 @@ namespace LteVideoPlayer.Api.Dtos
     {
         public FileDto OriginalFile { get; set; } = new FileDto();
         public FileDto ConvertedFile { get; set; } = new FileDto();
+        public int AudioStream { get; set; }
     }
 }

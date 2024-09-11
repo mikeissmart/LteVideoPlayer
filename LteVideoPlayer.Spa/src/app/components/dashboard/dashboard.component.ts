@@ -12,6 +12,7 @@ import { FileSelectComponent } from '../file-select/file-select.component';
 export class DashboardComponent implements OnInit {
   locationChangeSub: any;
   isAdmin = false;
+  isStaging = false;
   showVideoSelect = true;
   shareConnectStatus = '';
   hideConnectStatus = true;
@@ -30,15 +31,8 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
       this.isAdmin = params.has('admin');
-      const dir = params.has('dir') ? params.get('dir')! : '';
-      const file = params.get('file');
-
-      if (this.fileSelect != null) {
-        this.fileSelect.routeChangeFetchDirAndFiles(dir, file);
-      } else {
-        this.queryDir = dir;
-        this.queryFile = file;
-      }
+      this.queryDir = params.has('dir') ? params.get('dir')! : '';
+      this.queryFile = params.get('file');
     });
   }
 
