@@ -66,7 +66,10 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                             }
                         }
                         else
+                        {
+                            _errorPaths.Clear();
                             Thread.Sleep(5000);
+                        }
                     }
                 }
             }
