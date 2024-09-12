@@ -11,6 +11,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         private readonly IServiceProvider _services;
         private readonly int _imgWidth = 512;
         private readonly int _imgHeight = 512;
+        private readonly List<string> _errorPaths = new List<string>();
 
         public ThumbnailCronJob(
             IHostApplicationLifetime applicationLifetime,
@@ -100,7 +101,9 @@ namespace LteVideoPlayer.Api.CronJob.Convert
             var videoFiles = Directory.GetFiles(videoPath);
             if (videoFiles.Length > 0)
             {
-                var thumbnails = GetThumbnails(subpath, isPruning);
+                var thumbnails = GetThumbnails(subpath, isPruning)
+                    .Where(x => !_errorPaths.Contains(x))
+                    .ToList();
                 if (thumbnails.Count > 0)
                     return thumbnails;
             }
@@ -167,7 +170,10 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         {
             var duration = GetDuration(path, config, logger, cancellationToken);
             if (duration <= 0 || cancellationToken.IsCancellationRequested)
+            {
+                _errorPaths.Add(path);
                 return;
+            }
 
             var min = duration * (config.ThumbnailMinPercent / 100.0);
             var max = duration * (config.ThumbnailMaxPercent / 100.0);
@@ -178,9 +184,13 @@ namespace LteVideoPlayer.Api.CronJob.Convert
             thumbnailPath = thumbnailPath.Replace(config.VideoPath, config.ThumbnailPath);
             thumbnailPath = Path.Combine(thumbnailPath, thumbnailName);
 
+            var threadStr = config.FfmpegThreads > 0
+                ? $"-threads {config.FfmpegThreads}"
+                : "";
+
             ProcessHelper.RunProcess(
                 config.FfmpegFile,
-                $@"-i ""{path}"" -ss {frameTime} -vf ""scale=-1:{_imgHeight}"" -q:v 2 -vframes 1 ""{thumbnailPath}""",
+                $@"-i ""{path}"" -ss {frameTime} {threadStr} -vf ""scale=-1:{_imgHeight}"" -q:v 2 -vframes 1 ""{thumbnailPath}""",
                 out var output,
                 out var error,
                 cancellationToken);
@@ -210,7 +220,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError("Unable to get duration: " + ex.Message);
+                    logger.LogError($"Unable to get duration: Path - {path}, Output - {output}, Error - {error}");
                     return -1;
                 }
         }

@@ -36,10 +36,20 @@ export class ConvertFileAddManyComponent implements OnInit {
     files
       .filter((x) => !x.convertQueued!)
       .forEach((x, i) => {
+        var num = '';
+
+        if (files.length >= 100 && i < 99) {
+          num += '0';
+        }
+        if (files.length >= 10 && i < 9) {
+          num += '0';
+        }
+        num += `${i + 1}`;
+
         this.convertItems.push({
           index: i,
           skip: false,
-          convertName: `Episode ${i < 9 ? '0' : ''}${i + 1}`,
+          convertName: `Episode ${num}`,
           appendConvertName: '',
           file: x
         } as IConvertFileQueueDto);

@@ -39,9 +39,9 @@ namespace LteVideoPlayer.Api.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            var channel = 0;
-            if (_connectionProfile.TryGetValue(Context.ConnectionId, out var profile) &&
-                _connectionChannel.TryGetValue(Context.ConnectionId, out channel))
+            var gotProfile = _connectionProfile.TryGetValue(Context.ConnectionId, out var profile);
+            var gotChannel = _connectionChannel.TryGetValue(Context.ConnectionId, out var channel);
+            if (gotProfile && gotChannel)
             {
                 if (RemoveChannel(profile, channel))
                     await Clients.OthersInGroup(profile).SendAsync(SEND_REMOVECHANNEL, channel);
@@ -50,7 +50,8 @@ namespace LteVideoPlayer.Api.Hubs
             _connectionChannel.TryRemove(Context.ConnectionId, out var _);
             _channelConnection.TryRemove(channel, out var _);
 
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, profile);
+            if (gotProfile)
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, profile);
 
             Console.WriteLine($"OnDisconnected: {Context.ConnectionId}");
             await base.OnDisconnectedAsync(exception);
@@ -58,6 +59,12 @@ namespace LteVideoPlayer.Api.Hubs
 
         public async Task JoinProfile(string profile)
         {
+            if (string.IsNullOrEmpty(profile) || string.IsNullOrWhiteSpace(profile))
+            {
+                await Clients.Client(Context.ConnectionId).SendAsync(SEND_ERROR, "Attempting to join NULL profile");
+                return;
+            }
+
             if (NewChannel(profile, out var channel))
             {
                 if (_connectionProfile.TryAdd(Context.ConnectionId, profile) &&
