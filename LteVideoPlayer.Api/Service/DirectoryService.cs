@@ -1,4 +1,5 @@
 ﻿using LteVideoPlayer.Api.Configs;
+using LteVideoPlayer.Api.CronJob.Convert;
 using LteVideoPlayer.Api.Dtos;
 using LteVideoPlayer.Api.Entities;
 using LteVideoPlayer.Api.Helpers;
@@ -17,6 +18,7 @@ namespace LteVideoPlayer.Api.Service
         string GetFileThumbnail(string filePathName);
         void DeleteThumbnail(string filePathName);
         MetaDataDto GetVideoMeta(string filePathName, bool isStaging);
+        string GetWorkingThumbnail();
     }
 
     public class DirectoryService : IDirectoryService
@@ -24,14 +26,17 @@ namespace LteVideoPlayer.Api.Service
         private readonly AppDbContext _appDbContext;
         private readonly ILogger<DirectoryService> _logger;
         private readonly VideoConfig _videoConfig;
+        private readonly ThumbnailCronJob _thumbnailCronJob;
 
         public DirectoryService(AppDbContext appDbContext,
             ILogger<DirectoryService> logger,
-            VideoConfig videoConfig)
+            VideoConfig videoConfig,
+            ThumbnailCronJob thumbnailCronJob)
         {
             _appDbContext = appDbContext;
             _logger = logger;
             _videoConfig = videoConfig;
+            _thumbnailCronJob = thumbnailCronJob;
         }
 
         public bool FileExists(FileDto file, bool isStaging)
@@ -212,6 +217,11 @@ namespace LteVideoPlayer.Api.Service
                 Output = output,
                 Error = error
             };
+        }
+
+        public string GetWorkingThumbnail()
+        {
+            return _thumbnailCronJob.GetWorkingThunbmail();
         }
 
         private List<DirDto> GetDirs(string dir, bool isStaging)

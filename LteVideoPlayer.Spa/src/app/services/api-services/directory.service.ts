@@ -98,4 +98,11 @@ export class DirectoryService {
       callback
     );
   }
+
+  getWorkingThumbnail(callback: (workingThumbnail: IStringDto) => void): void {
+    this.httpClient.get<IStringDto>(
+      this.baseUri + `GetWorkingThumbnail`,
+      callback
+    );
+  }
 }

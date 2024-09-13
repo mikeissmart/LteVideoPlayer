@@ -12,6 +12,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         private readonly int _imgWidth = 512;
         private readonly int _imgHeight = 512;
         private readonly List<string> _errorPaths = new List<string>();
+        private string _currentThumbnail = "";
 
         public ThumbnailCronJob(
             IHostApplicationLifetime applicationLifetime,
@@ -26,6 +27,11 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         public void StartThumbnails()
         {
             Task.Run(() => ManageThumbnails());
+        }
+
+        public string GetWorkingThunbmail()
+        {
+            return _currentThumbnail.Replace(_videoConfig.VideoPath, "");
         }
 
         private void ManageThumbnails()
@@ -48,6 +54,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                     {
                         foreach (var thumbnail in missingThumbnails)
                         {
+                            _currentThumbnail = $"Create Thumbnail: {thumbnail}";
                             CreateThumbnail(thumbnail, _videoConfig, logger, _cancellationToken);
                             if (_cancellationToken.IsCancellationRequested)
                                 break;
@@ -60,6 +67,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         {
                             foreach (var thumbnail in pruneThumbnails)
                             {
+                                _currentThumbnail = $"Create Thumbnail: {thumbnail}";
                                 PruneThumbnail(thumbnail);
                                 if (_cancellationToken.IsCancellationRequested)
                                     break;
@@ -67,6 +75,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         }
                         else
                         {
+                            _currentThumbnail = $"Pending";
                             _errorPaths.Clear();
                             Thread.Sleep(5000);
                         }

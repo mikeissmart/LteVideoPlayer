@@ -172,5 +172,11 @@ namespace LteVideoPlayer.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("GetWorkingThumbnail")]
+        public IActionResult GetWorkingThumbnail()
+        {
+            return Ok(new StringDto { Data = _directoryService.GetWorkingThumbnail() });
+        }
     }
 }
