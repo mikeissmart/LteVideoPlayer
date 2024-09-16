@@ -143,11 +143,9 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                     ? $"-threads {config.FfmpegThreads}"
                     : "";
 
-                ProcessHelper.RunProcess(
+                var result = ProcessHelper.RunProcess(
                     config.FfmpegFile,
-                    $@"-i ""{config.StagePath + renameFilePathName}"" {threadStr} -map 0:v:0 -map 0:a:{convert.AudioStream} -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""",
-                    out var output,
-                    out var error);
+                    $@"-i ""{config.StagePath + renameFilePathName}"" {threadStr} -map 0:v:0 -map 0:a:{convert.AudioStream} -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{config.StagePath + convertedFilePathName}""");
 
                 /*var threadStr = config.FfmpegThreads > 0
                     ? $" -threads {config.FfmpegThreads} "
@@ -193,7 +191,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 if (!File.Exists(config.StagePath + convertedFilePathName))
                 {
                     convert.Errored = true;
-                    convert.Output = error;
+                    convert.Output = result.Error;
                 }
                 else
                 {

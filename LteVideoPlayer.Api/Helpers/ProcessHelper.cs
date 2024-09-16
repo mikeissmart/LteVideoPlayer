@@ -8,19 +8,24 @@ namespace LteVideoPlayer.Api.Helpers
 {
     public static class ProcessHelper
     {
-        public static bool RunProcess(
+        public static ProcessResult RunProcess(
             string fileName,
             string arguments,
-            out string output,
-            out string error,
             CancellationToken cancellationToken = default)
         {
-            output = "";
-            error = "";
+            var task = RunProcessAsync(fileName, arguments, cancellationToken);
+            task.Wait(cancellationToken);
+            return task.Result;
+        }
 
+        public static async Task<ProcessResult> RunProcessAsync(
+            string fileName,
+            string arguments,
+            CancellationToken cancellationToken = default)
+        {
+            var result = new ProcessResult();
             var outputStr = new StringBuilder();
             var errorStr = new StringBuilder();
-
             var startInfo = new ProcessStartInfo
             {
                 FileName = fileName,
@@ -53,21 +58,27 @@ namespace LteVideoPlayer.Api.Helpers
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
-                while (!process.HasExited && !cancellationToken.IsCancellationRequested)
-                {
-                    Thread.Sleep(5000);
-                }
+                await process.WaitForExitAsync(cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                 {
                     process.Kill(true);
-                    return false;
+                    result.IsCompleted = false;
                 }
+                else
+                    result.IsCompleted = true;
 
-                output = outputStr.ToString();
-                error = errorStr.ToString();
+                result.Output = outputStr.ToString();
+                result.Error = errorStr.ToString();
 
-                return true;
+                return result;
             }
         }
+    }
+
+    public class ProcessResult
+    {
+        public bool IsCompleted { get; set; }
+        public string Output { get; set; }
+        public string Error { get; set; }
     }
 }

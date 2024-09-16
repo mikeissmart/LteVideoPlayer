@@ -1,5 +1,7 @@
 ﻿using LteVideoPlayer.Api.Configs;
+using LteVideoPlayer.Api.Dtos;
 using LteVideoPlayer.Api.Helpers;
+using LteVideoPlayer.Api.Service;
 using System.Drawing;
 
 namespace LteVideoPlayer.Api.CronJob.Convert
@@ -11,7 +13,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         private readonly IServiceProvider _services;
         private readonly int _imgWidth = 512;
         private readonly int _imgHeight = 512;
-        private readonly List<string> _errorPaths = new List<string>();
+        private List<ThumbnailErrorDto> _thumbnailErrors;
         private string _currentThumbnail = "";
 
         public ThumbnailCronJob(
@@ -26,7 +28,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
 
         public void StartThumbnails()
         {
-            Task.Run(() => ManageThumbnails());
+            Task.Run(async () => await ManageThumbnailsAsync());
         }
 
         public string GetWorkingThunbmail()
@@ -34,11 +36,12 @@ namespace LteVideoPlayer.Api.CronJob.Convert
             return _currentThumbnail.Replace(_videoConfig.VideoPath, "");
         }
 
-        private void ManageThumbnails()
+        private async Task ManageThumbnailsAsync()
         {
             using (var scope = _services.CreateScope())
             {
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<ThumbnailCronJob>>();
+                var thumbnailService = scope.ServiceProvider.GetRequiredService<IThumbnailService>();
 
                 if (!Directory.Exists(_videoConfig.ThumbnailPath))
                     Directory.CreateDirectory(_videoConfig.ThumbnailPath);
@@ -46,6 +49,8 @@ namespace LteVideoPlayer.Api.CronJob.Convert
 
                 while (!_cancellationToken.IsCancellationRequested)
                 {
+                    _thumbnailErrors = await thumbnailService.GetThumbnailErrorsAsync();
+
                     var missingThumbnails = GetDirectoryThumbnails("", false);
                     if (_cancellationToken.IsCancellationRequested)
                         break;
@@ -55,7 +60,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         foreach (var thumbnail in missingThumbnails)
                         {
                             _currentThumbnail = $"Create Thumbnail: {thumbnail}";
-                            CreateThumbnail(thumbnail, _videoConfig, logger, _cancellationToken);
+                            await CreateThumbnailAsync(thumbnail, logger, thumbnailService);
                             if (_cancellationToken.IsCancellationRequested)
                                 break;
                         }
@@ -68,7 +73,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                             foreach (var thumbnail in pruneThumbnails)
                             {
                                 _currentThumbnail = $"Create Thumbnail: {thumbnail}";
-                                PruneThumbnail(thumbnail);
+                                await PruneThumbnailAsync(thumbnail, thumbnailService);
                                 if (_cancellationToken.IsCancellationRequested)
                                     break;
                             }
@@ -76,7 +81,6 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         else
                         {
                             _currentThumbnail = $"Pending";
-                            _errorPaths.Clear();
                             Thread.Sleep(5000);
                         }
                     }
@@ -103,7 +107,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
             img.Save(thumbnailPath);
         }
 
-        private List<string> GetDirectoryThumbnails(string subpath, bool isPruning)
+        private List<FileDto> GetDirectoryThumbnails(string subpath, bool isPruning)
         {
             var thumbnailPath = Path.Combine(_videoConfig.ThumbnailPath, subpath);
             if (!Directory.Exists(thumbnailPath))
@@ -113,9 +117,14 @@ namespace LteVideoPlayer.Api.CronJob.Convert
             var videoFiles = Directory.GetFiles(videoPath);
             if (videoFiles.Length > 0)
             {
-                var thumbnails = GetThumbnails(subpath, isPruning)
-                    .Where(x => !_errorPaths.Contains(x))
-                    .ToList();
+                var thumbnails = new List<FileDto>();
+                foreach (var thumbnail in GetThumbnails(subpath, isPruning))
+                {
+                    var thError = _thumbnailErrors.FirstOrDefault(x => x.File.FilePathName == thumbnail.FilePathName);
+                    if (thError == null || thError.LastError.AddDays(_videoConfig.RetryThumbnailAfterDays) < DateTime.Now)
+                        thumbnails.Add(thumbnail);
+                }
+
                 if (thumbnails.Count > 0)
                     return thumbnails;
             }
@@ -134,106 +143,105 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                     return ret;
             }
 
-            return new List<string>();
+            return new List<FileDto>();
         }
 
-        private List<string> GetThumbnails(string subpath, bool isPruning)
+        private List<FileDto> GetThumbnails(string subpath, bool isPruning)
         {
-            var thumbnailPath = Path.Combine(_videoConfig.ThumbnailPath, subpath);
-            var thumbnails = Directory.GetFiles(thumbnailPath);
+            var videos = FilePathsToFilesDto(
+                Directory.GetFiles(Path.Combine(_videoConfig.VideoPath, subpath)),
+                true);
+            var thumbnails = FilePathsToFilesDto(
+                Directory.GetFiles(Path.Combine(_videoConfig.ThumbnailPath, subpath)),
+                false);
 
-            var videoPath = Path.Combine(_videoConfig.VideoPath, subpath);
-            var videos = Directory.GetFiles(videoPath);
-
-            var retThumbnail = new List<string>();
+            var retThumbnail = new List<FileDto>();
             if (isPruning)
             {
-                for (var i = 0; i < videos.Length; i++)
-                    videos[i] = Path.GetFileNameWithoutExtension(videos[i]);
-
-                for (var i = 0; i < thumbnails.Length; i++)
+                foreach (var thumbnail in thumbnails)
                 {
-                    var tn = Path.GetFileNameWithoutExtension(thumbnails[i]);
-                    if (!videos.Any(x => x == tn))
-                        retThumbnail.Add(thumbnails[i]);
+                    if (!videos.Any(x => x.FilePathNameWithoutExtension == thumbnail.FilePathNameWithoutExtension))
+                        retThumbnail.Add(thumbnail);
                 }
             }
             else
             {
-                for (var i = 0; i < thumbnails.Length; i++)
-                    thumbnails[i] = Path.GetFileNameWithoutExtension(thumbnails[i]);
-
-                for (var i = 0; i < videos.Length; i++)
+                foreach (var video in videos)
                 {
-                    var v = Path.GetFileNameWithoutExtension(videos[i]);
-                    if (!thumbnails.Any(x => x == v))
-                        retThumbnail.Add(videos[i]);
+                    if (!thumbnails.Any(x => x.FilePathNameWithoutExtension == video.FilePathNameWithoutExtension))
+                        retThumbnail.Add(video);
                 }
             }
 
             return retThumbnail;
         }
 
-        private void CreateThumbnail(
-            string path,
-            VideoConfig config,
+        private async Task CreateThumbnailAsync(
+            FileDto file,
             ILogger<ThumbnailCronJob> logger,
-            CancellationToken cancellationToken)
+            IThumbnailService thumbnailService)
         {
-            var duration = GetDuration(path, config, logger, cancellationToken);
-            if (duration <= 0 || cancellationToken.IsCancellationRequested)
+            (float duration, string durationError) = await GetDurationAsync(file, logger);
+            var thumbnailFile = new FileDto
             {
-                _errorPaths.Add(path);
+                FileName = file.FileNameWithoutExtension + ".jpeg",
+                FilePath = file.FilePath.Replace(_videoConfig.VideoPath, _videoConfig.ThumbnailPath)
+            };
+
+            if (duration <= 0)
+            {
+                await thumbnailService.AddOrUpdateThumbnailErrorsAsync(file, durationError);
                 return;
             }
 
-            var min = duration * (config.ThumbnailMinPercent / 100.0);
-            var max = duration * (config.ThumbnailMaxPercent / 100.0);
+            var min = duration * (_videoConfig.ThumbnailMinPercent / 100.0);
+            var max = duration * (_videoConfig.ThumbnailMaxPercent / 100.0);
             var frameTime = SecondsToHHMMSS(Random.Shared.Next((int)min, (int)max));
 
-            var thumbnailName = Path.GetFileNameWithoutExtension(path) + ".jpeg";
-            var thumbnailPath = Path.GetDirectoryName(path)!;
-            thumbnailPath = thumbnailPath.Replace(config.VideoPath, config.ThumbnailPath);
-            thumbnailPath = Path.Combine(thumbnailPath, thumbnailName);
+            var videoFullFilePathName = Path.Combine(_videoConfig.VideoPath, file.FilePathName);
+            var thumbnailFullFilePathName = Path.Combine(_videoConfig.ThumbnailPath, thumbnailFile.FilePathName);
 
-            var threadStr = config.FfmpegThreads > 0
-                ? $"-threads {config.FfmpegThreads}"
+            var threadStr = _videoConfig.FfmpegThreads > 0
+                ? $"-threads {_videoConfig.FfmpegThreads}"
                 : "";
 
-            ProcessHelper.RunProcess(
-                config.FfmpegFile,
-                $@"-i ""{path}"" -ss {frameTime} {threadStr} -vf ""scale=-1:{_imgHeight}"" -q:v 2 -vframes 1 ""{thumbnailPath}""",
-                out var output,
-                out var error,
-                cancellationToken);
+            var result = await ProcessHelper.RunProcessAsync(
+                _videoConfig.FfmpegFile,
+                $@"-i ""{videoFullFilePathName}"" -ss {frameTime} {threadStr} -vf ""scale=-1:{_imgHeight}"" -q:v 2 -vframes 1 ""{thumbnailFullFilePathName}""",
+                _cancellationToken);
+
+            if (!File.Exists(thumbnailFullFilePathName))
+                await thumbnailService.AddOrUpdateThumbnailErrorsAsync(file, result.Error);
+            else
+                await thumbnailService.DeleteThumbnailErrorAsync(file);
         }
 
-        private void PruneThumbnail(string subpath)
+        private async Task PruneThumbnailAsync(FileDto file, IThumbnailService thumbnailService)
         {
-            File.Delete(Path.Combine(_videoConfig.ThumbnailPath, subpath));
+            File.Delete(Path.Combine(_videoConfig.ThumbnailPath, file.FilePathName));
+            await thumbnailService.DeleteThumbnailErrorAsync(file);
         }
 
-        private float GetDuration(
-            string path,
-            VideoConfig config,
-            ILogger<ThumbnailCronJob> logger,
-            CancellationToken cancellationToken)
+        private async Task<(float, string)> GetDurationAsync(
+            FileDto file,
+            ILogger<ThumbnailCronJob> logger)
         {
-            ProcessHelper.RunProcess(
-                config.FfprobeFile,
+            var path = Path.Combine(_videoConfig.VideoPath, file.FilePathName);
+
+            var result = await ProcessHelper.RunProcessAsync(
+                _videoConfig.FfprobeFile,
                 $@"-i ""{path}"" -show_entries format=duration -v quiet -of csv=""p=0""",
-                out var output,
-                out var error,
-                cancellationToken);
+                _cancellationToken);
 
                 try
                 {
-                    return float.Parse(output.Replace("\r\n", ""));
+                    return (float.Parse(result.Output.Replace("\r\n", "")), "");
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError($"Unable to get duration: Path - {path}, Output - {output}, Error - {error}");
-                    return -1;
+                    var thumbnailError = $"Unable to get duration: Path - {path}, Output - {result.Output}, Error - {result.Error}";
+                    logger.LogError(thumbnailError);
+                    return (-1, thumbnailError);
                 }
         }
 
@@ -241,6 +249,33 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         {
             var t = TimeSpan.FromSeconds(seconds);
             return $"{((int)t.TotalHours).ToString("D2")}:{t.Minutes.ToString("D2")}:{t.Seconds.ToString("D2")}";
+        }
+
+        private FileDto FilePathToFileDto(string path, bool replaceVideoPath)
+        {
+            var file = Path.GetFileName(path);
+            var subPath = Path.GetDirectoryName(path)! + "\\";
+            
+            if (replaceVideoPath)
+                subPath = subPath.Replace(_videoConfig.VideoPath, "");
+            else
+                subPath = subPath.Replace(_videoConfig.ThumbnailPath, "");
+
+            return new FileDto
+            {
+                FileName = file,
+                FilePath = subPath
+            };
+        }
+
+        private List<FileDto> FilePathsToFilesDto(IEnumerable<string> paths, bool replaceVideoPath)
+        {
+            var files = new List<FileDto>();
+
+            foreach (var path in paths)
+                files.Add(FilePathToFileDto(path, replaceVideoPath));
+
+            return files;
         }
     }
 }

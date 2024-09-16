@@ -55,6 +55,8 @@ export interface IFileDto
 	fileExists?: boolean;
 	convertQueued?: boolean;
 	filePathName?: string;
+	fileNameWithoutExtension?: string;
+	filePathNameWithoutExtension?: string;
 }
 export interface IFileHistoryDto
 {
@@ -100,6 +102,13 @@ export interface IRemoteData_VideoInfoDto extends IRemoteDataDto
 export interface IStringDto
 {
 	data?: string;
+}
+export interface IThumbnailErrorDto
+{
+	timesFailed?: number;
+	error?: string;
+	file?: IFileDto;
+	lastError?: Date;
 }
 export interface IUserProfileDto
 {

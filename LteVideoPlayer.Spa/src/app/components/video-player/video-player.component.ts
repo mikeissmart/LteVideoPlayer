@@ -13,6 +13,7 @@ import { UserProfileService } from 'src/app/services/api-services/user-profile.s
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
 import { RemoteHubService } from 'src/app/services/hubs/remote-hub.service';
 import { ModalComponent } from '../modal/modal.component';
+import { ThumbnailService } from 'src/app/services/api-services/thumbnail.service';
 
 @Component({
   selector: 'app-video-player',
@@ -43,6 +44,7 @@ export class VideoPlayerComponent implements OnInit {
 
   constructor(
     public directoryService: DirectoryService,
+    public thumbnailService: ThumbnailService,
     private readonly remoteHubService: RemoteHubService,
     private readonly userProfileService: UserProfileService,
     private readonly titleService: Title
@@ -198,7 +200,7 @@ export class VideoPlayerComponent implements OnInit {
   }
 
   checkThumbnail(): void {
-    this.directoryService.hasFileThumbnail(this.currentFile!.filePathName!,
+    this.thumbnailService.hasFileThumbnail(this.currentFile!.filePathName!,
       (exists: boolean) => {
         this.hasThumbnail = exists;
       }
@@ -206,7 +208,7 @@ export class VideoPlayerComponent implements OnInit {
   }
 
   deleteThumbnail(): void {
-    this.directoryService.deleteThumbnail(this.currentFile!.filePathName!, () => {
+    this.thumbnailService.deleteThumbnail(this.currentFile!.filePathName!, () => {
       this.checkThumbnail();
     });
   }

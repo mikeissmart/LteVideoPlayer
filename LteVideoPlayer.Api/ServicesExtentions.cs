@@ -30,7 +30,8 @@ namespace LteVideoPlayer.Api
 				.AddTransient<IConvertFileService, ConvertFileService>()
 				.AddTransient<IDirectoryService, DirectoryService>()
 				.AddTransient<IFileHistoryService, FileHistoryService>()
-				.AddTransient<IUserProfileService, UserProfileService>();
+                .AddTransient<IUserProfileService, UserProfileService>()
+                .AddTransient<IThumbnailService, ThumbnailService>();
 
 			return services;
 		}

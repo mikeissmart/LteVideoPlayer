@@ -14,6 +14,7 @@
         public int ThumbnailMinPercent { get; set; }
         public int ThumbnailMaxPercent { get; set; }
         public string DefaultThumbnail { get; set; }
+        public int RetryThumbnailAfterDays { get; set; }
 
         public string VideoPath
         {

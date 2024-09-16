@@ -24,6 +24,7 @@ import { ConvertFileAddManyComponent } from './components/convert-file-add-many/
 import { VideoPlayerComponent } from './components/video-player/video-player.component';
 import { RemoteComponent } from './components/remote/remote.component';
 import { VideoMetaComponent } from './components/video-meta/video-meta.component';
+import { TruncatePipe } from './pipes/truncate.pipe';
 
 @NgModule({
   declarations: [
@@ -44,6 +45,7 @@ import { VideoMetaComponent } from './components/video-meta/video-meta.component
     VideoPlayerComponent,
     RemoteComponent,
     VideoMetaComponent,
+    TruncatePipe
   ],
   imports: [
     BrowserModule,

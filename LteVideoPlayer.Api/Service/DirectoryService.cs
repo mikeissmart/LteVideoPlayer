@@ -14,11 +14,6 @@ namespace LteVideoPlayer.Api.Service
         bool FileExists(FileDto file, bool isStaging);
         DirsAndFilesDto GetDirsAndFiles(string dirPathName, bool isStaging);
         FileDto? GetNextFile(FileDto file, bool isStaging);
-        string GetFolderThumbnail(string filePathName);
-        string GetFileThumbnail(string filePathName);
-        void DeleteThumbnail(string filePathName);
-        MetaDataDto GetVideoMeta(string filePathName, bool isStaging);
-        string GetWorkingThumbnail();
     }
 
     public class DirectoryService : IDirectoryService
@@ -140,88 +135,6 @@ namespace LteVideoPlayer.Api.Service
             {
                 return files[index + 1];
             }
-        }
-
-        public string GetFolderThumbnail(string filePathName)
-        {
-            var thumbnailPath = Path.Combine(_videoConfig.ThumbnailPath, filePathName);
-            if (!Directory.Exists(thumbnailPath))
-                return "";
-
-            var thumbnails = Directory.GetFiles(thumbnailPath)
-                .OrderBy(x => x)
-                .ToList();
-            if (thumbnails.Count > 0)
-                return thumbnails[0];
-
-            foreach (var subpath in Directory.GetDirectories(thumbnailPath))
-            {
-                var tn = GetFolderThumbnail(subpath.Replace(_videoConfig.ThumbnailPath, ""));
-                if (tn != "")
-                    return tn;
-            }
-
-            return "";
-        }
-
-        public string GetFileThumbnail(string filePathName)
-        {
-            var path = Path.GetDirectoryName(filePathName);
-            var thumbnail = Path.GetFileNameWithoutExtension(filePathName) + ".jpeg";
-            var thumbnailPath = Path.Combine(path, thumbnail);
-
-            thumbnailPath = Path.Combine(_videoConfig.ThumbnailPath, thumbnailPath);
-            if (File.Exists(thumbnailPath))
-                return thumbnailPath;
-
-            return "";
-        }
-
-        public void DeleteThumbnail(string filePathName)
-        {
-            var path = Path.GetDirectoryName(filePathName);
-            var thumbnail = Path.GetFileNameWithoutExtension(filePathName) + ".jpeg";
-            var thumbnailPath = Path.Combine(path, thumbnail);
-
-            thumbnailPath = Path.Combine(_videoConfig.ThumbnailPath, thumbnailPath);
-            if (File.Exists(thumbnailPath))
-                File.Delete(thumbnailPath);
-        }
-
-        public MetaDataDto GetVideoMeta(string filePathName, bool isStaging)
-        {
-            var rootPath = isStaging ? _videoConfig.StagePath : _videoConfig.VideoPath;
-            var file = Path.Combine(rootPath, filePathName);
-
-            ProcessHelper.RunProcess(
-                _videoConfig.FfprobeFile,
-                $@"-hide_banner -i ""{file}""",
-                out var output,
-                out var error);
-
-            //$@"-v quiet -print_format json -show_format -show_streams ""{file}""",
-
-            /*try
-            {
-                output = JToken.Parse(output).ToString(Newtonsoft.Json.Formatting.Indented);
-            }
-            catch { }
-            try
-            {
-                error = JToken.Parse(error).ToString(Newtonsoft.Json.Formatting.Indented);
-            }
-            catch { }*/
-
-            return new MetaDataDto
-            {
-                Output = output,
-                Error = error
-            };
-        }
-
-        public string GetWorkingThumbnail()
-        {
-            return _thumbnailCronJob.GetWorkingThunbmail();
         }
 
         private List<DirDto> GetDirs(string dir, bool isStaging)
