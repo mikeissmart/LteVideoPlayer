@@ -11,7 +11,6 @@ import {
   IDirsAndFilesDto,
   IFileDto,
   IMetaDataDto,
-  IThumbnailErrorDto,
 } from 'src/app/models/models';
 import { DirectoryService } from 'src/app/services/api-services/directory.service';
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
@@ -22,6 +21,7 @@ import { ModalComponent } from '../modal/modal.component';
 import { VideoPlayerComponent } from '../video-player/video-player.component';
 import { Title } from '@angular/platform-browser';
 import { ThumbnailService } from 'src/app/services/api-services/thumbnail.service';
+import { ThumbnailInfoListAllComponent } from '../thumbnail-info-list-all/thumbnail-info-list-all.component';
 
 @Component({
   selector: 'app-file-select',
@@ -37,9 +37,6 @@ export class FileSelectComponent implements OnInit {
   isStaging = false;
   isFirstChange = true;
   metaData: IMetaDataDto | null = null;
-  workingThumbnail = '';
-  thumbnailErrors: IThumbnailErrorDto[] = []
-  disThumbError: IThumbnailErrorDto | null = null;
 
   @ViewChild('convertAllModal')
   convertAllModal: ModalComponent | null = null;
@@ -62,11 +59,10 @@ export class FileSelectComponent implements OnInit {
   @ViewChild('videoMeta')
   videoMetaModal: ModalComponent | null = null;
 
-  @ViewChild('workingThumbnailModal')
-  workingThumbnailModal: ModalComponent | null = null;
-
-  @ViewChild('disThumbErrorModal')
-  disThumbErrorModal: ModalComponent | null = null;
+  @ViewChild('thumbnailInfoModal')
+  thumbnailInfoModal: ModalComponent | null = null;
+  @ViewChild('thumbnailInfoListAll')
+  thumbnailInfoListAll: ThumbnailInfoListAllComponent | null = null;
 
   @Input()
   isAdmin = false;
@@ -82,7 +78,7 @@ export class FileSelectComponent implements OnInit {
 
   constructor(
     public readonly directoryService: DirectoryService,
-    public thumbnailService: ThumbnailService,
+    public readonly thumbnailService: ThumbnailService,
     private readonly titleService: Title
   ) {}
 
@@ -220,9 +216,14 @@ export class FileSelectComponent implements OnInit {
     this.convertAllModal!.openModal();
   }
 
-  convertFilesListAll(): void {
+  openConvertFilesListAll(): void {
     this.convertListAll!.refreshConvertFiles();
     this.convertListAllModal!.openModal();
+  }
+
+  openThumbnailInfoListAll(): void {
+    this.thumbnailInfoListAll!.refreshThumbnailInfos();
+    this.thumbnailInfoModal!.openModal();
   }
 
   playFile(file: IFileDto): void {
@@ -254,52 +255,5 @@ export class FileSelectComponent implements OnInit {
       this.metaData = result;
       this.videoMetaModal?.openModal();
     });
-  }
-
-  getAndDisplayThumbnailInfo(): void {
-    this.thumbnailService.getWorkingThumbnail((result) => {
-      this.workingThumbnail = result.data!;
-      this.thumbnailService.getThumbnailErrors((result) => {
-        this.thumbnailErrors = result;
-        this.workingThumbnailModal?.openModal();
-      });
-    });
-  }
-
-  getWorkingThumbnail(): void {
-    this.thumbnailService.getWorkingThumbnail((result) => {
-      this.workingThumbnail = result.data!;
-    });
-  }
-
-  getThumbnailErrors(): void {
-    this.thumbnailService.getThumbnailErrors((result) => {
-      this.thumbnailErrors = result;
-    });
-  }
-
-  displayThumbnailError(thumbnailError: IThumbnailErrorDto): void {
-    this.disThumbError = thumbnailError;
-    this.disThumbErrorModal?.openModal();
-  }
-
-  deleteThumbnailError(thumbnailError: IThumbnailErrorDto):void {
-    this.thumbnailService.deleteThumbnailError(thumbnailError.file!,
-      () => {
-        this.getWorkingThumbnail();
-        this.getThumbnailErrors();
-      });
-  }
-
-  deleteManyThumbnailErrors(): void {
-    var thumbnails: IFileDto[] = [];
-
-    this.thumbnailErrors.forEach((x) => thumbnails.push(x.file!));
-
-    this.thumbnailService.deleteManyThumbnailErrors(thumbnails,
-      () => {
-        this.getWorkingThumbnail();
-        this.getThumbnailErrors();
-      });
   }
 }

@@ -10,8 +10,8 @@ import { ModalComponent } from '../modal/modal.component';
 export class ConvertFileListComponent implements OnInit {
   sortedConvertFiles: IConvertFileDto[] = [];
   selectedCovertFile: IConvertFileDto | null = null;
-  sortProp: string | null = null;
-  sortAsc = false;
+  sortProp = 'CreatedDate';
+  sortAsc = true;
 
   @ViewChild('viewOutput')
   viewOutput: ModalComponent | null = null;
@@ -19,7 +19,14 @@ export class ConvertFileListComponent implements OnInit {
   @Input()
   public set convertFiles(v: IConvertFileDto[]) {
     this.sortedConvertFiles = v;
+    this.applySort();
+  }
 
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  applySort(): void {
     if (this.sortProp == 'CreatedDate') {
       this.sortedConvertFiles = this.sortedConvertFiles.sort((x, y) => {
         return this.toDate(x.createdDate!) > this.toDate(y.createdDate!)
@@ -52,10 +59,6 @@ export class ConvertFileListComponent implements OnInit {
     }
   }
 
-  constructor() {}
-
-  ngOnInit(): void {}
-
   selectConvertFile(convertFile: IConvertFileDto): void {
     this.selectedCovertFile = convertFile;
     this.viewOutput?.openModal();
@@ -83,6 +86,8 @@ export class ConvertFileListComponent implements OnInit {
       this.sortProp = 'CreatedDate';
       this.sortAsc = true;
     }
+
+    this.applySort();
   }
 
   sortProcessTime(): void {
@@ -92,5 +97,7 @@ export class ConvertFileListComponent implements OnInit {
       this.sortProp = 'ProcessTime';
       this.sortAsc = true;
     }
+
+    this.applySort();
   }
 }

@@ -25,6 +25,8 @@ import { VideoPlayerComponent } from './components/video-player/video-player.com
 import { RemoteComponent } from './components/remote/remote.component';
 import { VideoMetaComponent } from './components/video-meta/video-meta.component';
 import { TruncatePipe } from './pipes/truncate.pipe';
+import { ThumbnailInfoListAllComponent } from './components/thumbnail-info-list-all/thumbnail-info-list-all.component';
+import { ThumbnailInfoListComponent } from './components/thumbnail-info-list/thumbnail-info-list.component';
 
 @NgModule({
   declarations: [
@@ -45,7 +47,9 @@ import { TruncatePipe } from './pipes/truncate.pipe';
     VideoPlayerComponent,
     RemoteComponent,
     VideoMetaComponent,
-    TruncatePipe
+    TruncatePipe,
+    ThumbnailInfoListAllComponent,
+    ThumbnailInfoListComponent
   ],
   imports: [
     BrowserModule,
