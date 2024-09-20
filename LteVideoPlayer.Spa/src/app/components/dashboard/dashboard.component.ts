@@ -24,16 +24,31 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private readonly router: Router,
-    private readonly route: ActivatedRoute,
+    private readonly activeRoute: ActivatedRoute,
     public userProfileService: UserProfileService
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params) => {
+    this.activeRoute.queryParamMap.subscribe((params) => {
       this.isAdmin = params.has('admin');
+      this.isStaging = params.has('staging');
       this.queryDir = params.has('dir') ? params.get('dir')! : '';
       this.queryFile = params.get('file');
     });
+  }
+
+  generateQueryParams(): any {
+    var params = {
+      admin: this.isAdmin ? this.isAdmin : null,
+      staging: this.fileSelect!.isStagingDir ? this.fileSelect!.isStagingDir : null,
+      dir:
+        this.fileSelect!.currentDirPathName != ''
+          ? this.fileSelect!.currentDirPathName
+          : null,
+      file: this.queryFile,
+    };
+
+    return params;
   }
 
   /**
@@ -41,16 +56,14 @@ export class DashboardComponent implements OnInit {
    * @param filePathName Leave as null if only updating FileSelectComponent.CurrentDirPathName
    */
   onDirOrFileChange(filePathName: string | null): void {
-    var params = {
-      admin: this.isAdmin ? this.isAdmin : null,
-      staging: this.fileSelect!.isStaging ? this.fileSelect!.isStaging : null,
-      dir:
-        this.fileSelect!.currentDirPathName != ''
-          ? this.fileSelect!.currentDirPathName
-          : null,
-      file: filePathName,
-    };
+    this.queryFile = filePathName;
 
-    this.router.navigate([''], { queryParams: params });
+    this.router.navigate([''], { queryParams: this.generateQueryParams() });
+  }
+
+  onIsStagingChange(isStagingDir: boolean): void {
+    this.isStaging = isStagingDir;
+
+    this.router.navigate([''], { queryParams: this.generateQueryParams() });
   }
 }

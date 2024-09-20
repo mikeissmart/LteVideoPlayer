@@ -34,7 +34,7 @@ export class FileSelectComponent implements OnInit {
     dirs: [],
     files: [],
   } as IDirsAndFilesDto;
-  isStaging = false;
+  isStagingDir = false;
   isFirstChange = true;
   metaData: IMetaDataDto | null = null;
 
@@ -68,6 +68,15 @@ export class FileSelectComponent implements OnInit {
   isAdmin = false;
 
   @Input()
+  set isStaging(v: boolean) {
+    this.isStagingDir = v;
+    this.fetchDirsAndFiles();
+    this.updateTitle();
+  }
+  @Output()
+  onIsStagingChange = new EventEmitter<boolean>();
+
+  @Input()
   currentDirPathName = '';
 
   @Input()
@@ -88,7 +97,8 @@ export class FileSelectComponent implements OnInit {
   }
 
   stagingChanged(): void {
-    this.isStaging = !this.isStaging;
+    this.isStagingDir = !this.isStagingDir;
+    this.onIsStagingChange.emit(this.isStagingDir);
     this.currentDirPathName = '';
     this.fetchDirsAndFiles();
     this.updateTitle();
@@ -119,7 +129,7 @@ export class FileSelectComponent implements OnInit {
 
       this.directoryService.getDirsAndFiles(
         this.currentDirPathName,
-        this.isStaging,
+        this.isStagingDir,
         (result) => {
           this.errors = null;
           this.dirsAndFiles = result;
@@ -149,7 +159,7 @@ export class FileSelectComponent implements OnInit {
   fetchDirsAndFiles(): void {
     this.directoryService.getDirsAndFiles(
       this.currentDirPathName,
-      this.isStaging,
+      this.isStagingDir,
       (result) => {
         this.errors = null;
         this.dirsAndFiles = result;
@@ -227,7 +237,7 @@ export class FileSelectComponent implements OnInit {
   }
 
   playFile(file: IFileDto): void {
-    this.videoPlayer?.playFile(file, this.isStaging);
+    this.videoPlayer?.playFile(file, this.isStagingDir);
   }
 
   onPlayFileChange(file: IFileDto): void {
@@ -251,7 +261,7 @@ export class FileSelectComponent implements OnInit {
   }
 
   onVideoMeta(file: IFileDto): void {
-    this.thumbnailService.getVideoMeta(file, this.isStaging, (result) => {
+    this.thumbnailService.getVideoMeta(file, this.isStagingDir, (result) => {
       this.metaData = result;
       this.videoMetaModal?.openModal();
     });

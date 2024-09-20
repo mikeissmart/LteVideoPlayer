@@ -11,6 +11,8 @@
   <app-file-select
     #fileSelect
     [isAdmin]="isAdmin"
+    [isStaging]="isStaging"
+    (onIsStagingChange)="onIsStagingChange($event)"
     [currentDirPathName]="queryDir"
     [currentFileName]="queryFile"
     (onDirOrFileChange)="onDirOrFileChange($event)"

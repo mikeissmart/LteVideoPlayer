@@ -4,11 +4,11 @@
       <input
         type="checkbox"
         class="form-check-input"
-        id="isStaging"
+        id="isStagingDir"
         (change)="stagingChanged()"
-        [checked]="isStaging"
+        [checked]="isStagingDir"
       />
-      <label class="form-check-label" for="isStaging">Use Staging</label>
+      <label class="form-check-label" for="isStagingDir">Use Staging</label>
     </div>
   </div>
   <div class="col-3 col-lg-2" *ngIf="isAdmin">
@@ -27,7 +27,7 @@
       List All Converts
     </button>
   </div>
-  <div class="col-4 col-lg-3" *ngIf="isStaging">
+  <div class="col-4 col-lg-3" *ngIf="isStagingDir">
     <button
       class="btn btn-sm btn-success form-control"
       (click)="convertAllFiles()"
@@ -71,19 +71,19 @@
   <div class="col-2 col-lg-1">
     <button
       class="btn btn-sm btn-success form-control"
-      *ngIf="!isStaging"
+      *ngIf="!isStagingDir"
       (click)="playFile(item)"
     >
       Play
     </button>
     <button
       class="btn btn-sm btn-success form-control"
-      *ngIf="isStaging && item.convertQueued == false"
+      *ngIf="isStagingDir && item.convertQueued == false"
       (click)="convertFile(item)"
     >
       Convert
     </button>
-    <span class="text-danger" *ngIf="isStaging && item.convertQueued == true">
+    <span class="text-danger" *ngIf="isStagingDir && item.convertQueued == true">
       Converting
     </span>
   </div>
@@ -93,7 +93,7 @@
 </div>-->
 <div class="row pb-1">
   <div class="col-3 p-3" *ngFor="let item of dirsAndFiles.dirs">
-    <div *ngIf="!isStaging" class="img-container pb-3">
+    <div *ngIf="!isStagingDir" class="img-container pb-3">
       <img
         class=""
         [src]="thumbnailService.getFolderThumbnailUrl(item.dirPathName!)"
@@ -112,7 +112,7 @@
 <hr *ngIf="dirsAndFiles.dirs!.length > 0 && dirsAndFiles.files!.length > 0" />
 <div class="row pb-1">
   <div class="col-3 p-3" *ngFor="let item of dirsAndFiles.files">
-    <div *ngIf="!isStaging" class="img-container pb-3">
+    <div *ngIf="!isStagingDir" class="img-container pb-3">
       <img
         class=""
         [src]="thumbnailService.getFileThumbnailUrl(item.filePathName!)"
@@ -120,14 +120,14 @@
     </div>
     <div class="row justify-content-center">
       <button
-        *ngIf="!isStaging"
+        *ngIf="!isStagingDir"
         class="btn btn-sm btn-primary form-control"
         (click)="playFile(item)"
       >
         {{ item.fileName }}
       </button>
       <button
-        *ngIf="isStaging"
+        *ngIf="isStagingDir"
         class="btn btn-sm form-control"
         [ngClass]="item.convertQueued ? 'btn-danger' : 'btn-primary'"
         [disabled]="item.convertQueued"
@@ -142,19 +142,19 @@
   <!--<div class="col-2 col-lg-1">
     <button
       class="btn btn-sm btn-success form-control"
-      *ngIf="!isStaging"
+      *ngIf="!isStagingDir"
       (click)="playFile(item)"
     >
       Play
     </button>
     <button
       class="btn btn-sm btn-success form-control"
-      *ngIf="isStaging && item.convertQueued == false"
+      *ngIf="isStagingDir && item.convertQueued == false"
       (click)="convertFile(item)"
     >
       Convert
     </button>
-    <span class="text-danger" *ngIf="isStaging && item.convertQueued == true">
+    <span class="text-danger" *ngIf="isStagingDir && item.convertQueued == true">
       Converting
     </span>
   </div>

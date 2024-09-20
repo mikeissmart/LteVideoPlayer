@@ -98,7 +98,7 @@ export class ConvertFileAddManyComponent implements OnInit {
         this.convertItems = this.convertItems.filter(
           (y) => {
             var r = result.converts?.find((x) =>
-              y.file!.filePathName == x.originalFile!.fileName
+              y.file!.fileName! == x.originalFile!.fileName!
             );
             return r === undefined;
           });
