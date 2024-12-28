@@ -110,7 +110,7 @@
             <button
               class="col btn btn-danger"
               (click)="deleteThumbnail()"
-              [disabled]="!isDataLoaded || !hasThumbnail"
+              [disabled]="!(isDataLoaded && hasThumbnail)"
             >
               Delete Thumbnail
             </button>

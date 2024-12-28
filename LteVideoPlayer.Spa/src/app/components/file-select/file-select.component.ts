@@ -125,34 +125,9 @@ export class FileSelectComponent implements OnInit {
   routeChangeFetchDirAndFiles(dir: string, file: string | null): void {
     if (dir != this.currentDirPathName || file != this.currentFileName) {
       this.currentDirPathName = dir;
-      //this.currentFileName = file;
+      this.currentFileName = file;
 
-      this.directoryService.getDirsAndFiles(
-        this.currentDirPathName,
-        this.isStagingDir,
-        (result) => {
-          this.errors = null;
-          this.dirsAndFiles = result;
-          if (
-            file != null &&
-            file != this.currentFileName &&
-            result.files != null &&
-            result.files!.length > 0
-          ) {
-            const resutlFiles = result.files!.filter((x) => x.fileName == file);
-            if (resutlFiles.length > 0) {
-              this.playFile(resutlFiles[0]);
-            }
-          } else {
-            this.videoPlayer?.closeModal();
-          }
-        },
-        (error) => {
-          this.errors = error;
-          this.currentDirPathName = '';
-          this.fetchDirsAndFiles();
-        }
-      );
+      this.fetchDirsAndFiles();
     }
   }
 
@@ -176,21 +151,12 @@ export class FileSelectComponent implements OnInit {
             this.playFile(resutlFiles[0]);
           }
         }
-
-        /*if (playFile && result.files != null && result.files!.length > 0) {
-          const file = result.files!.filter(
-            (x) => x.fileName == this.currentFileName
-          );
-          if (file.length > 0 && file[0].fileName != this.currentFileName) {
-            this.playFile(file[0]);
-          }
-        } else {
-          this.videoPlayerModal?.closeModal();
-        }*/
       },
       (error) => {
         this.errors = error;
         this.currentDirPathName = '';
+        this.updateTitle();
+        this.onDirOrFileChange.emit(null);
         this.fetchDirsAndFiles();
       }
     );

@@ -26,6 +26,7 @@ services
         options.SerializerSettings.TypeNameHandling = TypeNameHandling.None;
     });
 services.AddSignalR();
+services.AddCors();
 
 var app = builder.Build();
 

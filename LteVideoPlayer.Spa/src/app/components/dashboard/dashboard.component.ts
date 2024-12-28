@@ -32,8 +32,15 @@ export class DashboardComponent implements OnInit {
     this.activeRoute.queryParamMap.subscribe((params) => {
       this.isAdmin = params.has('admin');
       this.isStaging = params.has('staging');
-      this.queryDir = params.has('dir') ? params.get('dir')! : '';
-      this.queryFile = params.get('file');
+      var dir = params.has('dir') ? params.get('dir')! : '';
+      var file = params.get('file');
+
+      if (this.fileSelect != null) {
+        this.fileSelect.routeChangeFetchDirAndFiles(dir, file);
+      } else {
+        this.queryDir = dir;
+        this.queryFile = file;
+      }
     });
   }
 

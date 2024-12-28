@@ -157,9 +157,9 @@ export class VideoPlayerComponent implements OnInit {
     } else {
       this.player.play();
       this.sendVideoInfo();
-      this.checkThumbnail();
     }
     this.isDataLoaded = true;
+    this.checkThumbnail();
   }
 
   playerEnded(): void {
