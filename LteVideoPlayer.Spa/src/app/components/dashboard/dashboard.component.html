@@ -8,13 +8,5 @@
   *ngIf="this.userProfileService.getCurrentUserProfile() != null"
 >
   <!--<app-file-history-last></app-file-history-last>-->
-  <app-file-select
-    #fileSelect
-    [isAdmin]="isAdmin"
-    [isStaging]="isStaging"
-    (onIsStagingChange)="onIsStagingChange($event)"
-    [currentDirPathName]="queryDir"
-    [currentFileName]="queryFile"
-    (onDirOrFileChange)="onDirOrFileChange($event)"
-  ></app-file-select>
+  <app-file-select></app-file-select>
 </div>

@@ -22,6 +22,7 @@ import { VideoPlayerComponent } from '../video-player/video-player.component';
 import { Title } from '@angular/platform-browser';
 import { ThumbnailService } from 'src/app/services/api-services/thumbnail.service';
 import { ThumbnailInfoListAllComponent } from '../thumbnail-info-list-all/thumbnail-info-list-all.component';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-file-select',
@@ -36,6 +37,9 @@ export class FileSelectComponent implements OnInit {
   } as IDirsAndFilesDto;
   isStagingDir = false;
   isFirstChange = true;
+  isAdmin = false;
+  currentDirPathName = '';
+  currentFileName = '';
   metaData: IMetaDataDto | null = null;
 
   @ViewChild('convertAllModal')
@@ -64,71 +68,41 @@ export class FileSelectComponent implements OnInit {
   @ViewChild('thumbnailInfoListAll')
   thumbnailInfoListAll: ThumbnailInfoListAllComponent | null = null;
 
-  @Input()
-  isAdmin = false;
-
-  @Input()
-  set isStaging(v: boolean) {
-    this.isStagingDir = v;
-    this.fetchDirsAndFiles();
-    this.updateTitle();
-  }
-  @Output()
-  onIsStagingChange = new EventEmitter<boolean>();
-
-  @Input()
-  currentDirPathName = '';
-
-  @Input()
-  currentFileName: string | null = null;
-
-  @Output()
-  onDirOrFileChange = new EventEmitter<string | null>();
-
   constructor(
+    private readonly router: Router,
+    private readonly activeRoute: ActivatedRoute,
     public readonly directoryService: DirectoryService,
     public readonly thumbnailService: ThumbnailService,
     private readonly titleService: Title
   ) {}
 
   ngOnInit(): void {
-    this.fetchDirsAndFiles();
-    this.updateTitle();
+    this.activeRoute.queryParamMap.subscribe((params) => {
+      this.isAdmin = params.has('admin');
+      this.isStagingDir = params.has('staging');
+      this.currentDirPathName = params.has('dir') ? params.get('dir')! : '';
+      this.currentFileName = params.has('file') ? params.get('file')! : '';
+
+      this.updateTitle();
+      this.fetchDirsAndFiles();
+    });
   }
 
   stagingChanged(): void {
-    this.isStagingDir = !this.isStagingDir;
-    this.onIsStagingChange.emit(this.isStagingDir);
-    this.currentDirPathName = '';
-    this.fetchDirsAndFiles();
-    this.updateTitle();
+    this.updateRouteParams(this.isAdmin, !this.isStagingDir, '', '');
   }
 
   pushDir(dir: IDirDto): void {
-    this.currentDirPathName = dir.dirPathName!;
-    this.updateTitle();
-    this.onDirOrFileChange.emit(null);
-    this.fetchDirsAndFiles();
+    this.updateRouteParams(this.isAdmin, this.isStagingDir, dir.dirPathName!, this.currentFileName);
   }
 
   popDir(): void {
     const dirs = this.currentDirPathName.split('\\');
-    this.currentDirPathName = '';
+    var dir = '';
     for (let index = 0; index < dirs.length - 2; index++) {
-      this.currentDirPathName += dirs[index] + '\\';
+      dir += dirs[index] + '\\';
     }
-    this.updateTitle();
-    this.onDirOrFileChange.emit(null);
-    this.fetchDirsAndFiles();
-  }
-
-  routeChangeFetchDirAndFiles(dir: string, file: string | null): void {
-    if (dir != this.currentDirPathName || file != this.currentFileName) {
-      this.currentDirPathName = dir;
-      this.currentFileName = file;
-
-      this.fetchDirsAndFiles();
-    }
+    this.updateRouteParams(this.isAdmin, this.isStagingDir, dir, this.currentFileName);
   }
 
   fetchDirsAndFiles(): void {
@@ -154,10 +128,7 @@ export class FileSelectComponent implements OnInit {
       },
       (error) => {
         this.errors = error;
-        this.currentDirPathName = '';
-        this.updateTitle();
-        this.onDirOrFileChange.emit(null);
-        this.fetchDirsAndFiles();
+        this.updateRouteParams(this.isAdmin, this.isStagingDir, '', this.currentFileName);
       }
     );
   }
@@ -207,15 +178,18 @@ export class FileSelectComponent implements OnInit {
   }
 
   onPlayFileChange(file: IFileDto): void {
-    this.currentFileName = file.fileName!;
-    this.currentDirPathName = file.filePath!;
-    this.onDirOrFileChange.emit(file.fileName!);
+    this.updateRouteParams(this.isAdmin, this.isStagingDir, file.filePath!, file.fileName!);
   }
 
   onPlayerClose(): void {
-    this.updateTitle();
-    this.currentFileName = null;
-    this.onDirOrFileChange.emit(null);
+    this.updateRouteParams(this.isAdmin, this.isStagingDir, this.currentDirPathName, '');
+  }
+
+  onVideoMeta(file: IFileDto): void {
+    this.thumbnailService.getVideoMeta(file, this.isStagingDir, (result) => {
+      this.metaData = result;
+      this.videoMetaModal?.openModal();
+    });
   }
 
   updateTitle() {
@@ -226,10 +200,14 @@ export class FileSelectComponent implements OnInit {
     }
   }
 
-  onVideoMeta(file: IFileDto): void {
-    this.thumbnailService.getVideoMeta(file, this.isStagingDir, (result) => {
-      this.metaData = result;
-      this.videoMetaModal?.openModal();
-    });
+  updateRouteParams(isAdmin: boolean, isStaging: boolean, dir: string, file: string): void {
+    var params = {
+      admin: isAdmin ? isAdmin : null,
+      staging: isStaging ? isStaging : null,
+      dir: dir.length > 0 ? dir : null,
+      file: file.length > 0 ? file : null,
+    };
+
+    this.router.navigate([''], { queryParams: params });
   }
 }
