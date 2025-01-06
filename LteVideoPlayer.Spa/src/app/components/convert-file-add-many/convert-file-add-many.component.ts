@@ -41,7 +41,7 @@ export class ConvertFileAddManyComponent implements OnInit {
         if (files.length >= 100 && i < 99) {
           num += '0';
         }
-        if (files.length >= 10 && i < 9) {
+        if (i < 9) {
           num += '0';
         }
         num += `${i + 1}`;
