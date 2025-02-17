@@ -1,5 +1,10 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { IConvertFileQueueDto, IConvertManyFileDto, ICreateConvertDto, IFileDto } from 'src/app/models/models';
+import {
+  IConvertFileQueueDto,
+  IConvertManyFileDto,
+  ICreateConvertDto,
+  IFileDto,
+} from 'src/app/models/models';
 import { ConvertFileService } from 'src/app/services/api-services/convert-file.service';
 import { ModelStateErrors } from 'src/app/services/http/ModelStateErrors';
 
@@ -24,14 +29,15 @@ export class ConvertFileAddManyComponent implements OnInit {
   @Output()
   onVideoMeta = new EventEmitter<IFileDto>();
 
-  constructor(private readonly convertFileService: ConvertFileService) { }
+  constructor(private readonly convertFileService: ConvertFileService) {}
 
-  ngOnInit(): void { }
+  ngOnInit(): void {}
 
   setOriginals(dirPathName: string, files: IFileDto[]): void {
     this.convertItems = [];
     this.originalPath = dirPathName;
     this.convertPath = dirPathName;
+    this.audioStream = 0;
 
     files
       .filter((x) => !x.convertQueued!)
@@ -51,7 +57,7 @@ export class ConvertFileAddManyComponent implements OnInit {
           skip: false,
           convertName: `Episode ${num}`,
           appendConvertName: '',
-          file: x
+          file: x,
         } as IConvertFileQueueDto);
       });
   }
@@ -82,26 +88,26 @@ export class ConvertFileAddManyComponent implements OnInit {
               this.convertPath +
               (this.convertPath[this.convertPath.length - 1] != '\\'
                 ? '\\'
-                : '')
+                : ''),
           } as IFileDto,
-          audioStream: this.audioStream
+          audioStream: this.audioStream,
         } as ICreateConvertDto);
       }
     });
 
-    this.convertFileService.addManyConvert(converts,
+    this.convertFileService.addManyConvert(
+      converts,
       (result) => {
         result.converts?.forEach((x) => {
           this.onCovertFileQueued.emit(x.originalFile?.fileName);
         });
 
-        this.convertItems = this.convertItems.filter(
-          (y) => {
-            var r = result.converts?.find((x) =>
-              y.file!.fileName! == x.originalFile!.fileName!
-            );
-            return r === undefined;
-          });
+        this.convertItems = this.convertItems.filter((y) => {
+          var r = result.converts?.find(
+            (x) => y.file!.fileName! == x.originalFile!.fileName!
+          );
+          return r === undefined;
+        });
         this.processCompletedConverts();
       },
       (error) => {

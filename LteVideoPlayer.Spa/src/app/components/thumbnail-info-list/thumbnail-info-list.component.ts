@@ -11,13 +11,13 @@ export class ThumbnailInfoListComponent implements OnInit {
   sortedThumbnailErrors: IThumbnailErrorDto[] = [];
   selectedThumbnailError: IThumbnailErrorDto | null = null;
   sortProp = 'LastError';
-  sortAsc = true;
+  sortAsc = false;
 
   @Input()
   public set thumbnailErrors(v: IThumbnailErrorDto[]) {
     this.sortedThumbnailErrors = v;
     this.sortProp = 'LastError';
-    this.sortAsc = true;
+    this.sortAsc = false;
     this.applySort();
   }
 
@@ -45,7 +45,7 @@ export class ThumbnailInfoListComponent implements OnInit {
       this.sortAsc = !this.sortAsc;
     } else {
       this.sortProp = 'LastError';
-      this.sortAsc = true;
+      this.sortAsc = false;
     }
 
     this.applySort();

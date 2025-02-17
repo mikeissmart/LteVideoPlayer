@@ -72,7 +72,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         {
                             foreach (var thumbnail in pruneThumbnails)
                             {
-                                _currentThumbnail = $"Create Thumbnail: {thumbnail}";
+                                _currentThumbnail = $"Prune Thumbnail: {thumbnail}";
                                 await PruneThumbnailAsync(thumbnail, thumbnailService);
                                 if (_cancellationToken.IsCancellationRequested)
                                     break;
@@ -121,7 +121,8 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 foreach (var thumbnail in GetThumbnails(subpath, isPruning))
                 {
                     var thError = _thumbnailErrors.FirstOrDefault(x => x.File.FilePathName == thumbnail.FilePathName);
-                    if (thError == null || thError.LastError.AddDays(_videoConfig.RetryThumbnailAfterDays) < DateTime.Now)
+                    if (thError == null ||
+                        (thError.LastError.AddDays(_videoConfig.RetryThumbnailAfterDays) < DateTime.Now && thError.TimesFailed < _videoConfig.MaxRetrys))
                         thumbnails.Add(thumbnail);
                 }
 

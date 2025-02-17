@@ -40,7 +40,7 @@ export class FileSelectComponent implements OnInit {
   isAdmin = false;
   currentDirPathName = '';
   currentFileName = '';
-  metaData: IMetaDataDto | null = null;
+  metaDataHtml = '';
 
   @ViewChild('convertAllModal')
   convertAllModal: ModalComponent | null = null;
@@ -93,7 +93,12 @@ export class FileSelectComponent implements OnInit {
   }
 
   pushDir(dir: IDirDto): void {
-    this.updateRouteParams(this.isAdmin, this.isStagingDir, dir.dirPathName!, this.currentFileName);
+    this.updateRouteParams(
+      this.isAdmin,
+      this.isStagingDir,
+      dir.dirPathName!,
+      this.currentFileName
+    );
   }
 
   popDir(): void {
@@ -102,7 +107,12 @@ export class FileSelectComponent implements OnInit {
     for (let index = 0; index < dirs.length - 2; index++) {
       dir += dirs[index] + '\\';
     }
-    this.updateRouteParams(this.isAdmin, this.isStagingDir, dir, this.currentFileName);
+    this.updateRouteParams(
+      this.isAdmin,
+      this.isStagingDir,
+      dir,
+      this.currentFileName
+    );
   }
 
   fetchDirsAndFiles(): void {
@@ -128,7 +138,12 @@ export class FileSelectComponent implements OnInit {
       },
       (error) => {
         this.errors = error;
-        this.updateRouteParams(this.isAdmin, this.isStagingDir, '', this.currentFileName);
+        this.updateRouteParams(
+          this.isAdmin,
+          this.isStagingDir,
+          '',
+          this.currentFileName
+        );
       }
     );
   }
@@ -178,16 +193,33 @@ export class FileSelectComponent implements OnInit {
   }
 
   onPlayFileChange(file: IFileDto): void {
-    this.updateRouteParams(this.isAdmin, this.isStagingDir, file.filePath!, file.fileName!);
+    this.updateRouteParams(
+      this.isAdmin,
+      this.isStagingDir,
+      file.filePath!,
+      file.fileName!
+    );
   }
 
   onPlayerClose(): void {
-    this.updateRouteParams(this.isAdmin, this.isStagingDir, this.currentDirPathName, '');
+    this.updateRouteParams(
+      this.isAdmin,
+      this.isStagingDir,
+      this.currentDirPathName,
+      ''
+    );
   }
 
   onVideoMeta(file: IFileDto): void {
     this.thumbnailService.getVideoMeta(file, this.isStagingDir, (result) => {
-      this.metaData = result;
+      this.metaDataHtml = result.output != null ? result.output : '';
+      this.metaDataHtml = result.error != null ? result.error : '';
+      this.metaDataHtml = this.metaDataHtml
+        .replace(/stream/g, '<span class="bg-warning text-black">stream</span>')
+        .replace(
+          /Stream/g,
+          '<span class="bg-warning text-black">Stream</span>'
+        );
       this.videoMetaModal?.openModal();
     });
   }
@@ -200,7 +232,12 @@ export class FileSelectComponent implements OnInit {
     }
   }
 
-  updateRouteParams(isAdmin: boolean, isStaging: boolean, dir: string, file: string): void {
+  updateRouteParams(
+    isAdmin: boolean,
+    isStaging: boolean,
+    dir: string,
+    file: string
+  ): void {
     var params = {
       admin: isAdmin ? isAdmin : null,
       staging: isStaging ? isStaging : null,

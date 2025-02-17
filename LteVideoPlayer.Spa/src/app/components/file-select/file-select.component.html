@@ -231,11 +231,8 @@
       <h4>Video Meta</h4>
     </div>
     <div body>
-      <p>Output</p>
-      <p>{{ metaData?.output }}</p>
-      <hr />
-      <p>Error</p>
-      <p>{{ metaData?.error }}</p>
+      <p>Metadata</p>
+      <p [innerHTML]="metaDataHtml"></p>
     </div>
   </app-modal>
 </div>

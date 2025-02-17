@@ -32,6 +32,8 @@ export class ConvertFileAddComponent implements OnInit {
   ngOnInit(): void {}
 
   setOriginalFile(file: IFileDto): void {
+    this.audioStream = 0;
+
     this.convertFileService.getConvertFileByOriginalFile(
       file,
       (result) => {
@@ -58,7 +60,7 @@ export class ConvertFileAddComponent implements OnInit {
               ? '\\'
               : ''),
         } as IFileDto,
-        audioStream: this.audioStream
+        audioStream: this.audioStream,
       } as ICreateConvertDto,
       (result) => this.onCovertFileSaved.emit(result),
       (error) => (this.errors = error)

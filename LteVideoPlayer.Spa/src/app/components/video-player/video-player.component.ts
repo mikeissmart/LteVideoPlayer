@@ -216,4 +216,16 @@ export class VideoPlayerComponent implements OnInit {
   displayMetaInfo(): void {
     this.onVideoMeta.emit(this.currentFile!);
   }
+
+  onKeyDown(e: KeyboardEvent): void {
+    if (this.isDataLoaded) {
+      if (e.key == 'ArrowRight') {
+        this.skip(5);
+        e.preventDefault();
+      } else if (e.key == 'ArrowLeft') {
+        this.skip(-5);
+        e.preventDefault();
+      }
+    }
+  }
 }

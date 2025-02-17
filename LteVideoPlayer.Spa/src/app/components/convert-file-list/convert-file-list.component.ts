@@ -11,7 +11,7 @@ export class ConvertFileListComponent implements OnInit {
   sortedConvertFiles: IConvertFileDto[] = [];
   selectedCovertFile: IConvertFileDto | null = null;
   sortProp = 'CreatedDate';
-  sortAsc = true;
+  sortAsc = false;
 
   @ViewChild('viewOutput')
   viewOutput: ModalComponent | null = null;
@@ -95,7 +95,7 @@ export class ConvertFileListComponent implements OnInit {
       this.sortAsc = !this.sortAsc;
     } else {
       this.sortProp = 'ProcessTime';
-      this.sortAsc = true;
+      this.sortAsc = false;
     }
 
     this.applySort();

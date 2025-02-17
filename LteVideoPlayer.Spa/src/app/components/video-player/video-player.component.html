@@ -20,6 +20,7 @@
             ? directoryService.streamFileUrl(currentFile!)
             : ''
         "
+        (keydown)="onKeyDown($event)"
         crossorigin
       ></video>
       <div class="row mb-3">
