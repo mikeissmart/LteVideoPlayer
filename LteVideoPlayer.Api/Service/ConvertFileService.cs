@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LteVideoPlayer.Api.Configs;
+using LteVideoPlayer.Api.CronJob.Convert;
 using LteVideoPlayer.Api.Dtos;
 using LteVideoPlayer.Api.Entities;
 using LteVideoPlayer.Api.Persistance;
@@ -19,6 +20,7 @@ namespace LteVideoPlayer.Api.Service
         Task<ConvertManyFileDto> AddConvertManyFileAsync(CreateManyConvertDto convert, ModelStateDictionary? modelState = null);
         Task<ConvertFileDto> UpdateConvertAsync(ConvertFileDto convert);
         Task DeleteConvertAsync(ConvertFileDto convert);
+        List<ConvertFileDto> WorkingConvertFiles();
     }
 
     public class ConvertFileService : IConvertFileService
@@ -27,16 +29,19 @@ namespace LteVideoPlayer.Api.Service
         private readonly ILogger<ConvertFileService> _logger;
         private readonly IDirectoryService _directoryService;
         private readonly IMapper _mapper;
+        private readonly ConvertQueueCronJob _convertQueueCronJob;
 
         public ConvertFileService(AppDbContext appDbContext,
             ILogger<ConvertFileService> logger,
             IDirectoryService directoryService,
-            IMapper mapper)
+            IMapper mapper,
+            ConvertQueueCronJob convertQueueCronJob)
         {
             _appDbContext = appDbContext;
             _directoryService = directoryService;
             _logger = logger;
             _mapper = mapper;
+            _convertQueueCronJob = convertQueueCronJob;
         }
 
         public async Task<List<ConvertFileDto>> GetIncompleteConvertsAsync(int maxCount = -1)
@@ -153,6 +158,11 @@ namespace LteVideoPlayer.Api.Service
             _appDbContext.Entry(entity).State = EntityState.Detached;
 
             return convert;
+        }
+
+        public List<ConvertFileDto> WorkingConvertFiles()
+        {
+            return _convertQueueCronJob.CurrentConverts();
         }
 
         private async Task<ConvertFileDto> ConvertAsync(CreateConvertDto convert, ModelStateDictionary? modelState = null)

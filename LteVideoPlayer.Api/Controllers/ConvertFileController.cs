@@ -69,5 +69,11 @@ namespace LteVideoPlayer.Api.Controllers
                 return BadRequest(ModelState);
             }
         }
+
+        [HttpGet("WorkingConvertFiles")]
+        public IActionResult WorkingConvertFiles()
+        {
+            return Ok(_convertFileService.WorkingConvertFiles());
+        }
     }
 }

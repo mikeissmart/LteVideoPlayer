@@ -13,6 +13,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
         private readonly VideoConfig _videoConfig;
         private readonly int _concurrentConverts;
         private readonly IServiceProvider _services;
+        private List<ConvertTask> _runningTasks;
 
         public ConvertQueueCronJob(
             IHostApplicationLifetime applicationLifetime,
@@ -23,11 +24,18 @@ namespace LteVideoPlayer.Api.CronJob.Convert
             _videoConfig = videoConfig;
             _services = services;
             _concurrentConverts = 1;
+            _runningTasks = new List<ConvertTask>();
         }
 
         public void StartQueue()
         {
             Task.Run(() => WatchQueue());
+        }
+
+        public List<ConvertFileDto> CurrentConverts()
+        {
+            lock (_runningTasks)
+                return new List<ConvertFileDto>(_runningTasks.Select(x => x.ConvertFile));
         }
 
         private void WatchQueue()
@@ -43,7 +51,8 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 if (!Directory.Exists(_videoConfig.StagePath))
                     Directory.CreateDirectory(_videoConfig.StagePath);
 
-                var runningTasks = new List<Task>();
+                lock (_runningTasks)
+                    _runningTasks.Clear();
                 var queuedConverts = new List<ConvertFileDto>();
                 List<ConvertFileDto> nonQueuedConverts;
                 while (!_cancellationToken.IsCancellationRequested)
@@ -53,7 +62,7 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                         lock (convertFileService)
                         {
                             // Lower how many times the database is hit
-                            if (runningTasks.Count != _concurrentConverts)
+                            if (_runningTasks.Count != _concurrentConverts)
                             {
                                 var task = convertFileService.GetIncompleteConvertsAsync(_concurrentConverts * 2);
                                 task.Wait();
@@ -65,35 +74,45 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                                 nonQueuedConverts = new List<ConvertFileDto>();
                         }
 
-                        if (nonQueuedConverts.Count == 0 && runningTasks.Count == 0)
+                        if (nonQueuedConverts.Count == 0 && _runningTasks.Count == 0)
                             Task.Delay(6000, _cancellationToken).Wait(_cancellationToken);
-                        else if (runningTasks.Count != _concurrentConverts)
+                        else if (_runningTasks.Count != _concurrentConverts)
                         {
                             while (!_cancellationToken.IsCancellationRequested &&
-                                runningTasks.Count != _concurrentConverts &&
+                                _runningTasks.Count != _concurrentConverts &&
                                 nonQueuedConverts.Count > 0)
                             {
                                 var convert = nonQueuedConverts[0];
                                 nonQueuedConverts.RemoveAt(0);
                                 queuedConverts.Add(convert);
 
-                                runningTasks.Add(Task.Run(() => ProcessConvert(
-                                    _cancellationToken,
-                                    convertFileService,
-                                    logger,
-                                    convert,
-                                    _videoConfig
-                                    )));
+                                lock (_runningTasks)
+                                {
+                                    _runningTasks.Add(new ConvertTask
+                                    {
+                                        Task = Task.Run(() => ProcessConvert(
+                                            _cancellationToken,
+                                            convertFileService,
+                                            logger,
+                                            convert,
+                                            _videoConfig
+                                            )),
+                                        ConvertFile = convert
+                                    });
+                                }
                             }
                         }
 
-                        for (var i = 0; i < runningTasks.Count; i++)
+                        for (var i = 0; i < _runningTasks.Count; i++)
                         {
-                            var task = runningTasks[i];
-                            if (task.IsCompleted)
+                            var task = _runningTasks[i];
+                            if (task.Task.IsCompleted)
                             {
-                                queuedConverts.RemoveAt(i);
-                                runningTasks.RemoveAt(i);
+                                lock (_runningTasks)
+                                {
+                                    queuedConverts.RemoveAt(i);
+                                    _runningTasks.RemoveAt(i);
+                                }
                                 i--;
                             }
                         }
@@ -242,5 +261,12 @@ namespace LteVideoPlayer.Api.CronJob.Convert
                 }
             }
         }
+
+        private class ConvertTask
+        {
+            public Task Task { get; set; }
+            public ConvertFileDto ConvertFile { get; set; }
+        }
     }
+
 }

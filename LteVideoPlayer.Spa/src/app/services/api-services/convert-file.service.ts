@@ -29,6 +29,15 @@ export class ConvertFileService {
     );
   }
 
+  getWorkingConvertFiles(
+    callback: (convertVideoFiles: IConvertFileDto[]) => void
+  ): void {
+    this.httpClient.get<IConvertFileDto[]>(
+      this.baseUri + 'WorkingConvertFiles',
+      callback
+    );
+  }
+
   getConvertFileByOriginalFile(
     file: IFileDto,
     callback: (convertVideoFiles: IConvertFileDto[]) => void,
@@ -54,7 +63,7 @@ export class ConvertFileService {
       errorCallback
     );
   }
-  
+
   addManyConvert(
     convertFile: ICreateManyConvertDto,
     callback: (convertVideoFile: IConvertManyFileDto) => void,
