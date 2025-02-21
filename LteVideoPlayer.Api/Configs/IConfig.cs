@@ -1,4 +1,4 @@
-﻿namespace LteVideoPlayer.Api.Configs
+namespace LteVideoPlayer.Api.Configs
 {
     public interface IConfig
     {

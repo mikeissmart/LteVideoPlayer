@@ -2,117 +2,106 @@
 //     Changes to this file may cause incorrect behavior and will be lost if
 //     the code is regenerated.
 
-export interface IConvertFileDto
+import { DirectoryEnum } from './model.enum';
+
+export interface IConvertFile
 {
-	id?: number;
-	output?: string;
-	errored?: boolean;
-	originalFile?: IFileDto;
-	convertedFile?: IFileDto;
-	audioStream?: number;
-	createdDate?: Date;
-	startedDate?: Date;
-	endedDate?: Date;
+	id: number;
+	directoryEnum: DirectoryEnum;
+	output: string | null;
+	errored: boolean;
+	originalFile: IFileDataType;
+	convertedFile: IFileDataType;
+	audioStreamIndex: number;
+	createdDate: Date;
+	startedDate: Date | null;
+	endedDate: Date | null;
 }
-export interface IConvertFileQueueDto
+export interface IConvertManyFile
 {
-	index?: number;
-	skip?: boolean;
-	convertQueued?: boolean;
-	convertName?: string;
-	appendConvertName?: string;
-	file?: IFileDto;
+	converts: IConvertFile[];
 }
-export interface IConvertManyFileDto
+export interface ICreateConvert
 {
-	converts?: IConvertFileDto[];
+	directoryEnum: DirectoryEnum;
+	originalFile: IFile;
+	convertedFile: IFile;
+	audioStreamIndex: number;
 }
-export interface ICreateConvertDto
+export interface ICreateManyConvert
 {
-	originalFile?: IFileDto;
-	convertedFile?: IFileDto;
-	audioStream?: number;
+	converts: ICreateConvert[];
 }
-export interface ICreateManyConvertDto
+export interface IDir
 {
-	converts?: ICreateConvertDto[];
+	path: string;
+	name: string;
+	fullPath: string;
 }
-export interface IDirDto
+export interface IDirectoryInfo
 {
-	dirPath?: string;
-	dirName?: string;
-	dirPathName?: string;
+	friendlyName: string;
+	adminViewOnly: boolean;
+	dirEnum: DirectoryEnum;
 }
-export interface IDirsAndFilesDto
+export interface IDirsAndFiles
 {
-	dirs?: IDirDto[];
-	files?: IFileDto[];
+	dirs: IDir[];
+	files: IFile[];
 }
-export interface IFileDto
+export interface IFileDataType
 {
-	filePath?: string;
-	fileName?: string;
-	fileExists?: boolean;
-	convertQueued?: boolean;
-	filePathName?: string;
-	fileNameWithoutExtension?: string;
-	filePathNameWithoutExtension?: string;
+	path: string;
+	file: string;
+	fullPath: string;
+	fileWOExt: string;
+	fileExt: string;
 }
-export interface IFileHistoryDto
+export interface IFile
 {
-	id?: number;
-	userProfileId?: number;
-	percentWatched?: number;
-	fileEntity?: IFileDto;
-	startedDate?: Date;
+	path: string;
+	file: string;
+	fullPath: string;
+	fileWOExt: string;
+	fileExt: string;
+	isConvertQueued: boolean;
 }
-export interface IMetaDataDto
+export interface IMetadata
 {
-	output?: string;
-	error?: string;
+	output: string;
+	error: string;
 }
-export interface IRemoteDataDto
+export interface IString
 {
-	profile?: string;
-	channel?: number;
+	data: string;
 }
-export interface IRemoteData_FullScreenDto extends IRemoteDataDto
+export interface IThumbnailError
 {
+	id: number;
+	timesFailed: number;
+	directoryEnum: DirectoryEnum;
+	error: string;
+	file: IFileDataType;
+	lastError: Date;
 }
-export interface IRemoteData_MoveSeekDto extends IRemoteDataDto
+export interface IUserProfile
 {
-	seekPosition?: number;
+	id: number;
+	name: string;
 }
-export interface IRemoteData_SetSeekDto extends IRemoteDataDto
+export interface IAppLogFilter
 {
-	seekPercentPosition?: number;
+	logLevel: number | null;
+	eventId: number | null;
+	eventName: string | null;
+	minDate: Date | null;
+	maxDate: Date | null;
 }
-export interface IRemoteData_SetVolumeDto extends IRemoteDataDto
+export interface ICronLogFilter
 {
-	volume?: number;
-}
-export interface IRemoteData_VideoInfoDto extends IRemoteDataDto
-{
-	videoFile?: string;
-	currentTimeSeconds?: number;
-	maxTimeSeconds?: number;
-	volume?: number;
-	isPlaying?: boolean;
-}
-export interface IStringDto
-{
-	data?: string;
-}
-export interface IThumbnailErrorDto
-{
-	timesFailed?: number;
-	error?: string;
-	file?: IFileDto;
-	lastError?: Date;
-}
-export interface IUserProfileDto
-{
-	id?: number;
-	name?: string;
-	createdDate?: Date;
+	name: string | null;
+	cronLogType: number | null;
+	isCanceled: boolean | null;
+	minDate: Date | null;
+	maxDate: Date | null;
 }

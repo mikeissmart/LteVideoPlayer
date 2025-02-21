@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { IUserProfileDto } from 'src/app/models/models';
+import { IUserProfile } from './../../models/models.d';
+import { Injectable, signal } from '@angular/core';
+import { ModelStateErrors } from '../../models/ModelStateErrors';
 import { ApiHttpService } from '../http/api-http.service';
-import { ModelStateErrors } from '../http/ModelStateErrors';
 
 @Injectable({
   providedIn: 'root',
@@ -10,54 +10,58 @@ export class UserProfileService {
   private baseUri = 'Userprofile/';
   private localUserProfile = 'userProfile';
 
-  constructor(private readonly httpClient: ApiHttpService) {}
+  currentUserProfile = signal<IUserProfile | null>(null);
 
-  getCurrentUserProfile(): IUserProfileDto | null {
+  constructor(private readonly httpClient: ApiHttpService) {
+    const local = localStorage.getItem(this.localUserProfile);
+    if (local == undefined || local == null) {
+      this.currentUserProfile.set(null);
+    }
+
+    this.currentUserProfile.set(JSON.parse(local!) as IUserProfile);
+  }
+
+  getCurrentUserProfileFromLocal(): IUserProfile | null {
     const local = localStorage.getItem(this.localUserProfile);
     if (local == undefined || local == null) {
       return null;
     }
 
-    return JSON.parse(local) as IUserProfileDto;
+    return JSON.parse(local) as IUserProfile;
   }
 
-  setCurrentUserProfile(userProfile: IUserProfileDto | null): void {
+  setCurrentUserProfile(userProfile: IUserProfile | null): void {
     if (userProfile == null) {
       localStorage.removeItem(this.localUserProfile);
     } else {
       localStorage.setItem(this.localUserProfile, JSON.stringify(userProfile));
     }
+    this.currentUserProfile.set(userProfile);
   }
 
-  getAllUserProfiles(
-    callback: (userProfiles: IUserProfileDto[]) => void,
-    errorCallback?: (errors: ModelStateErrors | null) => void
-  ): void {
-    this.httpClient.get<IUserProfileDto[]>(
+  getAllUserProfiles(callback: (userProfiles: IUserProfile[]) => void): void {
+    this.httpClient.get<IUserProfile[]>(
       this.baseUri + 'GetAllUserProfiles',
-      callback,
-      errorCallback
+      callback
     );
   }
 
   getUserProfileById(
     userProfileId: number,
-    callback: (userProfile: IUserProfileDto) => void,
-    errorCallback?: (errors: ModelStateErrors | null) => void
+    callback: (userProfile: IUserProfile) => void
   ): void {
-    this.httpClient.get<IUserProfileDto>(
+    this.httpClient.get<IUserProfile>(
       this.baseUri + 'GetUserProfileById?userProfileId=' + userProfileId,
-      callback,
-      errorCallback
+      callback
     );
   }
 
   createUserProfile(
-    userProfile: IUserProfileDto,
-    callback: (userProfile: IUserProfileDto) => void,
+    userProfile: IUserProfile,
+    callback: (userProfile: IUserProfile) => void,
     errorCallback?: (errors: ModelStateErrors | null) => void
   ): void {
-    this.httpClient.post<IUserProfileDto>(
+    this.httpClient.post<IUserProfile>(
       this.baseUri + 'CreateUserProfile',
       userProfile,
       callback,
@@ -66,11 +70,11 @@ export class UserProfileService {
   }
 
   updateUserProfile(
-    userProfile: IUserProfileDto,
-    callback: (userProfile: IUserProfileDto) => void,
+    userProfile: IUserProfile,
+    callback: (userProfile: IUserProfile) => void,
     errorCallback?: (errors: ModelStateErrors | null) => void
   ): void {
-    this.httpClient.post<IUserProfileDto>(
+    this.httpClient.post<IUserProfile>(
       this.baseUri + 'UpdateUserProfile',
       userProfile,
       callback,
@@ -79,15 +83,13 @@ export class UserProfileService {
   }
 
   deleteUserProfile(
-    userProfile: IUserProfileDto,
-    callback: (isSuccessful: boolean) => void,
-    errorCallback?: (errors: ModelStateErrors | null) => void
+    userProfile: IUserProfile,
+    callback: (isSuccessful: boolean) => void
   ): void {
     this.httpClient.post<boolean>(
       this.baseUri + 'DeleteUserProfile',
       userProfile.id,
-      callback,
-      errorCallback
+      callback
     );
   }
 }

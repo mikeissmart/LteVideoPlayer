@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { NgxSpinnerService } from 'ngx-spinner';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LoadingService {
   showCounter = 0;
 
-  constructor(private readonly spinner: NgxSpinnerService) {}
+  spinner = inject(NgxSpinnerService);
 
   show(): () => void {
     this.showCounter += 1;

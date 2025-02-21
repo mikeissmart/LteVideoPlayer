@@ -1,6 +1,7 @@
 ﻿using LteVideoPlayer.Api.Configs;
-using LteVideoPlayer.Api.Dtos;
-using LteVideoPlayer.Api.Service;
+using LteVideoPlayer.Api.Models.Dtos;
+using LteVideoPlayer.Api.Models.Enums;
+using LteVideoPlayer.Api.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,65 +14,80 @@ namespace LteVideoPlayer.Api.Controllers
     {
         private readonly IDirectoryService _directoryService;
         private readonly ILogger<DirectoryController> _logger;
-        private readonly VideoConfig _videoConfig;
+        private readonly IVideoConfigService _videoConfigService;
 
         public DirectoryController(IDirectoryService directoryService,
             ILogger<DirectoryController> logger,
-            VideoConfig videoConfig)
+            IVideoConfigService videoConfigService)
         {
             _directoryService = directoryService;
             _logger = logger;
-            _videoConfig = videoConfig;
+            _videoConfigService = videoConfigService;
         }
 
-        [HttpGet("GetRootDirsAndFiles")]
-        public IActionResult GetRootDirsAndFiles([FromQuery] bool isStaging)
+        [HttpGet("GetDirectories")]
+        public IActionResult GetDirectories()
         {
             try
             {
-                return Ok(_directoryService.GetDirsAndFiles("", isStaging));
+                return Ok(_videoConfigService.GetVideoConfigs());
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("Directory", ex.Message);
-                return BadRequest(ModelState);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetRootDirsAndFiles")]
+        public async Task<IActionResult> GetRootDirsAndFiles([FromQuery] DirectoryEnum dirEnum)
+        {
+            try
+            {
+                return Ok(await _directoryService.GetDirsAndFilesAsync(dirEnum, "", false));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
 
         [HttpGet("GetDirsAndFiles")]
-        public IActionResult GetDirsAndFiles([FromQuery] string dirPathName, [FromQuery] bool isStaging)
+        public async Task<IActionResult> GetDirsAndFiles([FromQuery] DirectoryEnum dirEnum, [FromQuery] string path)
         {
             try
             {
-                return Ok(_directoryService.GetDirsAndFiles(dirPathName, isStaging));
+                return Ok(await _directoryService.GetDirsAndFilesAsync(dirEnum, path, false));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("Directory", ex.Message);
-                return BadRequest(ModelState);
+                return BadRequest(ex.Message);
             }
         }
 
         [HttpPost("GetNextFile")]
-        public IActionResult GetNextFile([FromBody] FileDto file, [FromQuery] bool isStaging)
+        public IActionResult GetNextFile([FromQuery] DirectoryEnum dirEnum, [FromBody] FileDto file)
         {
             try
             {
-                return Ok(_directoryService.GetNextFile(file, isStaging));
+                return Ok(_directoryService.GetNextFile(dirEnum, file));
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("Directory", ex.Message);
-                return BadRequest(ModelState);
+                return BadRequest(ex.Message);
             }
         }
 
         [HttpGet("StreamFile")]
-        public IActionResult StreamFile([FromQuery] string filePathName)
+        public IActionResult StreamFile([FromQuery] DirectoryEnum dirEnum, [FromQuery] string fullPath)
         {
             try
             {
-                var rootFilePathName = _videoConfig.VideoPath + filePathName;
+                var videoConfig = _videoConfigService.GetVideoConfig(dirEnum);
+                if (!videoConfig.CanPlayVideo)
+                    throw new Exception("Play video disabled for this directory");
+
+                var rootFilePathName = Path.Combine(videoConfig.RootVideoDir, fullPath);
                 if (!System.IO.File.Exists(rootFilePathName))
                     throw new FileNotFoundException(rootFilePathName);
 
@@ -85,7 +101,7 @@ namespace LteVideoPlayer.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError(ex, ex.Message);
                 return BadRequest(ex.Message);
             }
         }

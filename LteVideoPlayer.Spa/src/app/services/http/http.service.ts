@@ -4,7 +4,11 @@ import {
   HttpHeaders,
 } from '@angular/common/http';
 import { LoadingService } from '../loading/loading.service';
+import { Injectable } from '@angular/core';
 
+@Injectable({
+  providedIn: 'root',
+})
 export abstract class HttpService<TErrorResponse> {
   private _loadingService: LoadingService = {} as LoadingService;
   private _httpClient: HttpClient = {} as HttpClient;

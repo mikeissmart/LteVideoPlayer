@@ -1,6 +1,6 @@
-﻿using LteVideoPlayer.Api.CronJob.Convert;
-using LteVideoPlayer.Api.Dtos;
-using LteVideoPlayer.Api.Service;
+﻿using LteVideoPlayer.Api.Models.Dtos;
+using LteVideoPlayer.Api.Models.Enums;
+using LteVideoPlayer.Api.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,11 +19,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpGet("GetAllConvertFiles")]
-        public async Task<IActionResult> GetAllConvertFiles()
+        public async Task<IActionResult> GetAllConvertFiles([FromQuery] DirectoryEnum dirEnum)
         {
             try
             {
-                return Ok(await _convertFileService.GetAllConvertFilesAsync());
+                return Ok(await _convertFileService.GetAllConvertFilesAsync(dirEnum));
             }
             catch (Exception ex)
             {
@@ -32,11 +32,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpPost("GetConvertFileByOriginalFile")]
-        public async Task<IActionResult> GetConvertFileByOriginalFile([FromBody] FileDto file)
+        public async Task<IActionResult> GetConvertFileByOriginalFile([FromQuery] DirectoryEnum dirEnum, [FromBody] FileDto file)
         {
             try
             {
-                return Ok(await _convertFileService.GetConvertFileByOriginalFileAsync(file));
+                return Ok(await _convertFileService.GetConvertFileByOriginalFileAsync(dirEnum, file));
             }
             catch (Exception ex)
             {
@@ -45,11 +45,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpPost("AddConvert")]
-        public async Task<IActionResult> AddConvert([FromBody] CreateConvertDto convert)
+        public async Task<IActionResult> AddConvert([FromQuery] DirectoryEnum dirEnum, [FromBody] CreateConvertDto convert)
         {
             try
             {
-                return Ok(await _convertFileService.AddConvertFileAsync(convert, ModelState));
+                return Ok(await _convertFileService.AddConvertFileAsync(dirEnum, convert, ModelState));
             }
             catch
             {
@@ -58,11 +58,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpPost("AddManyConvert")]
-        public async Task<IActionResult> AddManyConvert([FromBody] CreateManyConvertDto convert)
+        public async Task<IActionResult> AddManyConvert([FromQuery] DirectoryEnum dirEnum, [FromBody] CreateManyConvertDto convert)
         {
             try
             {
-                return Ok(await _convertFileService.AddConvertManyFileAsync(convert, ModelState));
+                return Ok(await _convertFileService.AddConvertManyFileAsync(dirEnum, convert, ModelState));
             }
             catch
             {
@@ -70,10 +70,24 @@ namespace LteVideoPlayer.Api.Controllers
             }
         }
 
-        [HttpGet("WorkingConvertFiles")]
-        public IActionResult WorkingConvertFiles()
+        [HttpGet("GetCurrentConvertFile")]
+        public IActionResult GetCurrentConvertFile()
         {
-            return Ok(_convertFileService.WorkingConvertFiles());
+            return Ok(_convertFileService.GetCurrentConvertFile());
+        }
+
+        [HttpGet("GetVideoMeta")]
+        public async Task<IActionResult> GetVideoMeta([FromQuery] DirectoryEnum dirEnum, [FromQuery] string fullPath)
+        {
+            try
+            {
+                var result = await _convertFileService.GetVideoMetaAsync(dirEnum, fullPath);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
