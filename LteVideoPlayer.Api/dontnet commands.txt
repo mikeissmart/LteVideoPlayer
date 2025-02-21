@@ -3,10 +3,10 @@ Manage Migrations
 		install sdk 2.0 https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-2.1.202-windows-x64-installer
 		add nuget package Microsoft.EntityFrameworkCore.Design for Marketeer.Persistance.Database project
 	Add migration
-		dotnet ef migrations add {} --project LteVideoPlayer.Api
+		dotnet ef migrations add Initial --project LteVideoPlayer.Api --context AppDbContext
 	Update database
-		dotnet ef database update --project LteVideoPlayer.ApiS
+		dotnet ef database update --project LteVideoPlayer.Api --context AppDbContext
 	Remove migration
-		dotnet ef migrations remove --project LteVideoPlayer.Api
+		dotnet ef migrations remove --project LteVideoPlayer.Api --context AppDbContext
 	Rollback migration
-		dotnet ef database update {} --project LteVideoPlayer.Api
+		dotnet ef database update {} --project LteVideoPlayer.Api --context AppDbContext

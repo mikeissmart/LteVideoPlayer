@@ -17,24 +17,27 @@ namespace LteVideoPlayer.Api.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.5")
+                .HasAnnotation("ProductVersion", "9.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.ConvertFile", b =>
+            modelBuilder.Entity("LteVideoPlayer.Api.Models.Entities.ConvertFile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AudioStream")
+                    b.Property<int>("AudioStreamIndex")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("DirectoryEnum")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("EndedDate")
                         .HasColumnType("datetime2");
@@ -53,37 +56,16 @@ namespace LteVideoPlayer.Api.Migrations
                     b.ToTable("ConvertFiles");
                 });
 
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.FileHistory", b =>
+            modelBuilder.Entity("LteVideoPlayer.Api.Models.Entities.ThumbnailError", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<float>("PercentWatched")
-                        .HasColumnType("real");
-
-                    b.Property<DateTime>("StartedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserProfileId")
+                    b.Property<int>("DirectoryEnum")
                         .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserProfileId");
-
-                    b.ToTable("FileHistories");
-                });
-
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.ThumbnailError", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Error")
                         .IsRequired()
@@ -100,19 +82,13 @@ namespace LteVideoPlayer.Api.Migrations
                     b.ToTable("ThumbnailErrors");
                 });
 
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.UserProfile", b =>
+            modelBuilder.Entity("LteVideoPlayer.Api.Models.Entities.UserProfile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -124,18 +100,18 @@ namespace LteVideoPlayer.Api.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.ConvertFile", b =>
+            modelBuilder.Entity("LteVideoPlayer.Api.Models.Entities.ConvertFile", b =>
                 {
-                    b.OwnsOne("LteVideoPlayer.Api.DataTypes.FileEntity", "ConvertedFile", b1 =>
+                    b.OwnsOne("LteVideoPlayer.Api.Models.DataTypes.FileDataType", "ConvertedFile", b1 =>
                         {
                             b1.Property<int>("ConvertFileId")
                                 .HasColumnType("int");
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("File")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<string>("FilePath")
+                            b1.Property<string>("Path")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
@@ -147,16 +123,16 @@ namespace LteVideoPlayer.Api.Migrations
                                 .HasForeignKey("ConvertFileId");
                         });
 
-                    b.OwnsOne("LteVideoPlayer.Api.DataTypes.FileEntity", "OriginalFile", b1 =>
+                    b.OwnsOne("LteVideoPlayer.Api.Models.DataTypes.FileDataType", "OriginalFile", b1 =>
                         {
                             b1.Property<int>("ConvertFileId")
                                 .HasColumnType("int");
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("File")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<string>("FilePath")
+                            b1.Property<string>("Path")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
@@ -175,53 +151,18 @@ namespace LteVideoPlayer.Api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.FileHistory", b =>
+            modelBuilder.Entity("LteVideoPlayer.Api.Models.Entities.ThumbnailError", b =>
                 {
-                    b.HasOne("LteVideoPlayer.Api.Entities.UserProfile", "UserProfile")
-                        .WithMany("WatchVideos")
-                        .HasForeignKey("UserProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.OwnsOne("LteVideoPlayer.Api.DataTypes.FileEntity", "FileEntity", b1 =>
-                        {
-                            b1.Property<int>("FileHistoryId")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("FileName")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("FilePath")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("FileHistoryId");
-
-                            b1.ToTable("FileHistories");
-
-                            b1.WithOwner()
-                                .HasForeignKey("FileHistoryId");
-                        });
-
-                    b.Navigation("FileEntity")
-                        .IsRequired();
-
-                    b.Navigation("UserProfile");
-                });
-
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.ThumbnailError", b =>
-                {
-                    b.OwnsOne("LteVideoPlayer.Api.DataTypes.FileEntity", "File", b1 =>
+                    b.OwnsOne("LteVideoPlayer.Api.Models.DataTypes.FileDataType", "File", b1 =>
                         {
                             b1.Property<int>("ThumbnailErrorId")
                                 .HasColumnType("int");
 
-                            b1.Property<string>("FileName")
+                            b1.Property<string>("File")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<string>("FilePath")
+                            b1.Property<string>("Path")
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
@@ -235,11 +176,6 @@ namespace LteVideoPlayer.Api.Migrations
 
                     b.Navigation("File")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("LteVideoPlayer.Api.Entities.UserProfile", b =>
-                {
-                    b.Navigation("WatchVideos");
                 });
 #pragma warning restore 612, 618
         }

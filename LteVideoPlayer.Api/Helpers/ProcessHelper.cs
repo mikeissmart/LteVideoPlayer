@@ -1,22 +1,10 @@
-﻿using LteVideoPlayer.Api.Configs;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Text;
 
 namespace LteVideoPlayer.Api.Helpers
 {
     public static class ProcessHelper
     {
-        public static ProcessResult RunProcess(
-            string fileName,
-            string arguments,
-            CancellationToken cancellationToken = default)
-        {
-            var task = RunProcessAsync(fileName, arguments, cancellationToken);
-            task.Wait(cancellationToken);
-            return task.Result;
-        }
 
         public static async Task<ProcessResult> RunProcessAsync(
             string fileName,
@@ -78,7 +66,7 @@ namespace LteVideoPlayer.Api.Helpers
     public class ProcessResult
     {
         public bool IsCompleted { get; set; }
-        public string Output { get; set; }
-        public string Error { get; set; }
+        public string Output { get; set; } = "";
+        public string Error { get; set; } = "";
     }
 }

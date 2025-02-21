@@ -1,6 +1,7 @@
 ﻿using LteVideoPlayer.Api.Configs;
-using LteVideoPlayer.Api.Dtos;
-using LteVideoPlayer.Api.Service;
+using LteVideoPlayer.Api.Models.Dtos;
+using LteVideoPlayer.Api.Models.Enums;
+using LteVideoPlayer.Api.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,23 +14,23 @@ namespace LteVideoPlayer.Api.Controllers
     {
         private readonly IThumbnailService _thumbnailService;
         private readonly ILogger<ThumbnailController> _logger;
-        private readonly VideoConfig _videoConfig;
+        private readonly IWebHostEnvironment _environment;
 
         public ThumbnailController(IThumbnailService thumbnailService,
             ILogger<ThumbnailController> logger,
-            VideoConfig videoConfig)
+            IWebHostEnvironment environment)
         {
             _thumbnailService = thumbnailService;
             _logger = logger;
-            _videoConfig = videoConfig;
+            _environment = environment;
         }
 
-        [HttpGet("GetThumbnailErrors")]
-        public async Task<IActionResult> GetThumbnailErrors()
+        [HttpGet("GetAllThumbnailErrors")]
+        public async Task<IActionResult> GetAllThumbnailErrorsAsync([FromQuery] DirectoryEnum dirEnum)
         {
             try
             {
-                return Ok(await _thumbnailService.GetThumbnailErrorsAsync());
+                return Ok(await _thumbnailService.GetAllThumbnailErrorsAsync(dirEnum));
             }
             catch (Exception ex)
             {
@@ -39,16 +40,15 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpGet("GetFolderThunbmail")]
-        public IActionResult GetFolderThunbmail([FromQuery] string filePathName)
+        public IActionResult GetFolderThunbmail([FromQuery] DirectoryEnum dirEnum, [FromQuery] string fullPath)
         {
             try
             {
-                var thumbnail = _thumbnailService.GetFolderThumbnail(filePathName);
-                if (thumbnail == "")
-                    thumbnail = _videoConfig.DefaultThumbnailFile;
-
-                var image = System.IO.File.OpenRead(thumbnail);
-                return File(image, "image/jpeg");
+                var thumbnail = _thumbnailService.GetFolderThumbnail(dirEnum, fullPath);
+                if (thumbnail.Length == 0)
+                    return File(System.IO.File.OpenRead(thumbnail), "image/jpeg");
+                else
+                    return File(System.IO.File.OpenRead(DefualtThumbnail()), "image/png");
             }
             catch (Exception ex)
             {
@@ -58,16 +58,16 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpGet("GetFileThumbnail")]
-        public IActionResult GetFileThumbnail([FromQuery] string filePathName)
+        public IActionResult GetFileThumbnail([FromQuery] DirectoryEnum dirEnum, [FromQuery] string fullPath)
         {
             try
             {
-                var thumbnail = _thumbnailService.GetFileThumbnail(filePathName);
-                if (thumbnail == "")
-                    thumbnail = _videoConfig.DefaultThumbnailFile;
+                var thumbnail = _thumbnailService.GetFileThumbnail(dirEnum, fullPath);
+                if (thumbnail.Length == 0)
+                    return File(System.IO.File.OpenRead(thumbnail), "image/jpeg");
+                else
+                    return File(System.IO.File.OpenRead(DefualtThumbnail()), "image/png");
 
-                var image = System.IO.File.OpenRead(thumbnail);
-                return File(image, "image/jpeg");
             }
             catch (Exception ex)
             {
@@ -77,11 +77,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpGet("HasFileThumbnail")]
-        public IActionResult HasFileThumbnail([FromQuery] string filePathName)
+        public IActionResult HasFileThumbnail([FromQuery] DirectoryEnum dirEnum, [FromQuery] string fullPath)
         {
             try
             {
-                var thumbnail = _thumbnailService.GetFileThumbnail(filePathName);
+                var thumbnail = _thumbnailService.GetFileThumbnail(dirEnum, fullPath);
                 return Ok(thumbnail != "");
             }
             catch (Exception ex)
@@ -92,11 +92,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpPost("DeleteThumbnail")]
-        public IActionResult DeleteThumbnail([FromBody] StringDto data)
+        public IActionResult DeleteThumbnail([FromQuery] DirectoryEnum dirEnum, [FromBody] StringDto data)
         {
             try
             {
-                _thumbnailService.DeleteThumbnail(data.Data);
+                _thumbnailService.DeleteThumbnail(dirEnum, data.Data);
                 return Ok();
             }
             catch (Exception ex)
@@ -107,11 +107,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpPost("DeleteThumbnailError")]
-        public async Task<IActionResult> DeleteThumbnailError([FromBody] FileDto file)
+        public async Task<IActionResult> DeleteThumbnailError([FromQuery] DirectoryEnum dirEnum, [FromBody] FileDto file)
         {
             try
             {
-                await _thumbnailService.DeleteThumbnailErrorAsync(file);
+                await _thumbnailService.DeleteThumbnailErrorAsync(dirEnum, file);
                 return Ok();
             }
             catch (Exception ex)
@@ -122,12 +122,12 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpPost("DeleteManyThumbnailErrors")]
-        public async Task<IActionResult> DeleteManyThumbnailErrors([FromBody] FileDto[] files)
+        public async Task<IActionResult> DeleteManyThumbnailErrors([FromQuery] DirectoryEnum dirEnum, [FromBody] FileDto[] files)
         {
             try
             {
                 foreach (var file in files)
-                    await _thumbnailService.DeleteThumbnailErrorAsync(file);
+                    await _thumbnailService.DeleteThumbnailErrorAsync(dirEnum, file);
 
                 return Ok();
             }
@@ -138,24 +138,13 @@ namespace LteVideoPlayer.Api.Controllers
             }
         }
 
-        [HttpGet("GetVideoMeta")]
-        public async Task<IActionResult> GetVideoMeta([FromQuery] string filePathName, [FromQuery] bool isStaging)
+        [HttpGet("GetCurrentThumbnail")]
+        public IActionResult GetCurrentThumbnail()
         {
-            try
-            {
-                var result = await _thumbnailService.GetVideoMetaAsync(filePathName, isStaging);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(new StringDto { Data = _thumbnailService.GetCurrentThumbnail() });
         }
 
-        [HttpGet("GetWorkingThumbnail")]
-        public IActionResult GetWorkingThumbnail()
-        {
-            return Ok(new StringDto { Data = _thumbnailService.GetWorkingThumbnail() });
-        }
+        private string DefualtThumbnail()
+            => Path.Combine(_environment.WebRootPath, "images", "Default.png");
     }
 }

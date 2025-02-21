@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import {
-  IConvertFileDto,
-  IConvertManyFileDto,
-  ICreateConvertDto,
-  ICreateManyConvertDto,
-  IFileDto,
-  IStringDto,
-} from 'src/app/models/models';
+  IConvertFile,
+  IFile,
+  ICreateConvert,
+  ICreateManyConvert,
+  IConvertManyFile,
+  IMetadata,
+} from '../../models/models';
+import { ModelStateErrors } from '../../models/ModelStateErrors';
 import { ApiHttpService } from '../http/api-http.service';
-import { ModelStateErrors } from '../http/ModelStateErrors';
+import { DirectoryEnum } from '../../models/model.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -19,45 +20,35 @@ export class ConvertFileService {
   constructor(private readonly httpClient: ApiHttpService) {}
 
   getAllConvertFiles(
-    callback: (convertVideoFiles: IConvertFileDto[]) => void,
-    errorCallback?: (errors: ModelStateErrors | null) => void
+    dirEnum: DirectoryEnum,
+    callback: (convertVideoFiles: IConvertFile[]) => void
   ): void {
-    this.httpClient.get<IConvertFileDto[]>(
-      this.baseUri + 'GetAllConvertFiles',
-      callback,
-      errorCallback
-    );
-  }
-
-  getWorkingConvertFiles(
-    callback: (convertVideoFiles: IConvertFileDto[]) => void
-  ): void {
-    this.httpClient.get<IConvertFileDto[]>(
-      this.baseUri + 'WorkingConvertFiles',
+    this.httpClient.get<IConvertFile[]>(
+      this.baseUri + `GetAllConvertFiles?dirEnum=${dirEnum}`,
       callback
     );
   }
 
   getConvertFileByOriginalFile(
-    file: IFileDto,
-    callback: (convertVideoFiles: IConvertFileDto[]) => void,
-    errorCallback?: (errors: ModelStateErrors | null) => void
+    dirEnum: DirectoryEnum,
+    file: IFile,
+    callback: (convertVideoFiles: IConvertFile[]) => void
   ): void {
-    this.httpClient.post<IConvertFileDto[]>(
-      this.baseUri + 'GetConvertFileByOriginalFile',
+    this.httpClient.post<IConvertFile[]>(
+      this.baseUri + `GetConvertFileByOriginalFile?dirEnum=${dirEnum}`,
       file,
-      callback,
-      errorCallback
+      callback
     );
   }
 
   addConvert(
-    convertFile: ICreateConvertDto,
-    callback: (convertVideoFile: IConvertFileDto) => void,
+    dirEnum: DirectoryEnum,
+    convertFile: ICreateConvert,
+    callback: (convertVideoFile: IConvertFile) => void,
     errorCallback?: (errors: ModelStateErrors | null) => void
   ): void {
     this.httpClient.post(
-      this.baseUri + 'AddConvert',
+      this.baseUri + `AddConvert?dirEnum=${dirEnum}`,
       convertFile,
       callback,
       errorCallback
@@ -65,15 +56,37 @@ export class ConvertFileService {
   }
 
   addManyConvert(
-    convertFile: ICreateManyConvertDto,
-    callback: (convertVideoFile: IConvertManyFileDto) => void,
+    dirEnum: DirectoryEnum,
+    convertFile: ICreateManyConvert,
+    callback: (convertVideoFile: IConvertManyFile) => void,
     errorCallback?: (errors: ModelStateErrors | null) => void
   ): void {
     this.httpClient.post(
-      this.baseUri + 'AddManyConvert',
+      this.baseUri + `AddManyConvert?dirEnum=${dirEnum}`,
       convertFile,
       callback,
       errorCallback
+    );
+  }
+
+  getCurrentConvertFile(
+    callback: (convertVideoFiles: IConvertFile) => void
+  ): void {
+    this.httpClient.get<IConvertFile>(
+      this.baseUri + 'GetCurrentConvertFile',
+      callback
+    );
+  }
+
+  getVideoMeta(
+    dirEnum: DirectoryEnum,
+    file: IFile,
+    callback: (meta: IMetadata) => void
+  ): void {
+    this.httpClient.get<IMetadata>(
+      this.baseUri +
+        `GetVideoMeta?dirEnum=${dirEnum}&fullPath=${file.fullPath}`,
+      callback
     );
   }
 }

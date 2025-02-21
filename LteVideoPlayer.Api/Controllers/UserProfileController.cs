@@ -1,5 +1,5 @@
-﻿using LteVideoPlayer.Api.Dtos;
-using LteVideoPlayer.Api.Service;
+﻿using LteVideoPlayer.Api.Models.Dtos;
+using LteVideoPlayer.Api.Services;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,8 +26,7 @@ namespace LteVideoPlayer.Api.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("UserProfile", ex.Message);
-                return BadRequest(ModelState);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -40,8 +39,7 @@ namespace LteVideoPlayer.Api.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("UserProfile", ex.Message);
-                return BadRequest(ModelState);
+                return BadRequest(ex.Message);
             }
         }
 

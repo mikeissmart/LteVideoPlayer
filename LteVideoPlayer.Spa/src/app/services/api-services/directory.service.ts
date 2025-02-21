@@ -1,11 +1,8 @@
-import { Injectable } from '@angular/core';
-import {
-  IDirsAndFilesDto,
-  IFileDto,
-} from 'src/app/models/models';
-import { environment } from 'src/environments/environment';
+import { Injectable, signal } from '@angular/core';
+import { environment } from '../../../environments/environment';
+import { IDirectoryInfo, IDirsAndFiles, IFile } from '../../models/models';
 import { ApiHttpService } from '../http/api-http.service';
-import { ModelStateErrors } from '../http/ModelStateErrors';
+import { DirectoryEnum } from '../../models/model.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -13,43 +10,50 @@ import { ModelStateErrors } from '../http/ModelStateErrors';
 export class DirectoryService {
   private baseUri = 'Directory/';
 
+  currentDirectory = signal<IDirectoryInfo | null>(null);
+  currentPath = signal<string>('');
+  currentFile = signal<string>('');
+
   constructor(private readonly httpClient: ApiHttpService) {}
 
+  getDirectories(callback: (directories: IDirectoryInfo[]) => void): void {
+    this.httpClient.get<IDirectoryInfo[]>(
+      this.baseUri + 'GetDirectories',
+      callback
+    );
+  }
+
   getDirsAndFiles(
-    dirPathName: string,
-    isStaging: boolean,
-    callback: (dirsAndFiles: IDirsAndFilesDto) => void,
-    errorCallback?: (errors: ModelStateErrors | null) => void
+    dirEnum: DirectoryEnum,
+    path: string,
+    callback: (dirsAndFiles: IDirsAndFiles) => void
   ): void {
-    this.httpClient.get<IDirsAndFilesDto>(
+    this.httpClient.get<IDirsAndFiles>(
       this.baseUri +
-        (dirPathName.length > 0
-          ? `GetDirsAndFiles?dirPathName=${dirPathName}&isStaging=${isStaging}`
-          : `GetRootDirsAndFiles?isStaging=${isStaging}`),
-      callback,
-      errorCallback
+        (path.length > 0
+          ? `GetDirsAndFiles?dirEnum=${dirEnum}&path=${path}`
+          : `GetRootDirsAndFiles?dirEnum=${dirEnum}`),
+      callback
     );
   }
 
   getNextFile(
-    file: IFileDto,
-    isStaging: boolean,
-    callback: (nextFile: IFileDto | null) => void,
-    errorCallback?: (errors: ModelStateErrors | null) => void
+    dirEnum: DirectoryEnum,
+    file: IFile,
+    callback: (nextFile: IFile | null) => void
   ): void {
-    this.httpClient.post<IFileDto | null>(
-      this.baseUri + `GetNextFile?isStaging=${isStaging}`,
+    this.httpClient.post<IFile | null>(
+      this.baseUri + `GetNextFile?dirEnum=${dirEnum}`,
       file,
-      callback,
-      errorCallback
+      callback
     );
   }
 
-  streamFileUrl(file: IFileDto): string {
+  streamFileUrl(dirEnum: DirectoryEnum, file: IFile): string {
     return (
       environment.apiUrl +
       this.baseUri +
-      `StreamFile?filePathName=${file.filePathName}`
+      `StreamFile?dirEnum=${dirEnum}&fullPath=${file.fullPath}`
     );
   }
 }

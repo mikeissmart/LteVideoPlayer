@@ -1,8 +1,0 @@
-<div #content>
-  <ng-content></ng-content>
-  <div *ngIf="errors.length > 0" class="text-danger" role="alert">
-    <div class="float-left">
-      <div *ngFor="let error of errors">{{ error }}</div>
-    </div>
-  </div>
-</div>

@@ -1,85 +1,93 @@
 import { Injectable } from '@angular/core';
-import { IStringDto, IFileDto, IMetaDataDto, IThumbnailErrorDto } from 'src/app/models/models';
-import { environment } from 'src/environments/environment';
+import { environment } from '../../../environments/environment';
+import { IString, IFile, IThumbnailError } from '../../models/models';
 import { ApiHttpService } from '../http/api-http.service';
+import { DirectoryEnum } from '../../models/model.enum';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ThumbnailService {
   private baseUri = 'Thumbnail/';
 
   constructor(private readonly httpClient: ApiHttpService) {}
 
-  getFolderThumbnailUrl(subpath: string): string {
-    return (
-      environment.apiUrl +
-      this.baseUri +
-      `GetFolderThunbmail?filePathName=${subpath}`
-    );
-  }
-
-  getFileThumbnailUrl(subpath: string): string {
-    return (
-      environment.apiUrl +
-      this.baseUri +
-      `GetFileThumbnail?filePathName=${subpath}`
-    );
-  }
-
-  hasFileThumbnail(subpath: string, callback: (exists: boolean) => void): void {
-    this.httpClient.get<boolean>(
-      this.baseUri + `HasFileThumbnail?filePathName=${subpath}`,
-      callback
-    );
-  }
-
-  deleteThumbnail(subpath: string, callback: () => void): void {
-    this.httpClient.post<IStringDto>(
-      this.baseUri + `DeleteThumbnail`,
-      { data: subpath } as IStringDto,
-      callback
-    );
-  }
-
-  getVideoMeta(
-    file: IFileDto,
-    isStaging: boolean,
-    callback: (meta: IMetaDataDto) => void
+  getAllThumbnailErrors(
+    dirEnum: DirectoryEnum,
+    callback: (thumbnailErrors: IThumbnailError[]) => void
   ): void {
-    this.httpClient.get<IMetaDataDto>(
+    this.httpClient.get<IThumbnailError[]>(
+      this.baseUri + `GetAllThumbnailErrors?dirEnum=${dirEnum}`,
+      callback
+    );
+  }
+
+  getFolderThumbnailUrl(dirEnum: DirectoryEnum, fullPath: string): string {
+    return (
+      environment.apiUrl +
       this.baseUri +
-        `GetVideoMeta?filePathName=${file.filePathName}&isStaging=${isStaging}`,
+      `GetFolderThunbmail?dirEnum=${dirEnum}&fullPath=${fullPath}`
+    );
+  }
+
+  getFileThumbnailUrl(dirEnum: DirectoryEnum, fullPath: string): string {
+    return (
+      environment.apiUrl +
+      this.baseUri +
+      `GetFileThumbnail?dirEnum=${dirEnum}&fullPath=${fullPath}`
+    );
+  }
+
+  hasFileThumbnail(
+    dirEnum: DirectoryEnum,
+    fullPath: string,
+    callback: (exists: boolean) => void
+  ): void {
+    this.httpClient.get<boolean>(
+      this.baseUri + `HasFileThumbnail?dirEnum=${dirEnum}&fullPath=${fullPath}`,
       callback
     );
   }
 
-  getWorkingThumbnail(callback: (workingThumbnail: IStringDto) => void): void {
-    this.httpClient.get<IStringDto>(
-      this.baseUri + `GetWorkingThumbnail`,
+  deleteThumbnail(
+    dirEnum: DirectoryEnum,
+    fullPath: string,
+    callback: () => void
+  ): void {
+    this.httpClient.post<IString>(
+      this.baseUri + `DeleteThumbnail?dirEnum=${dirEnum}`,
+      { data: fullPath } as IString,
       callback
     );
   }
 
-  getThumbnailErrors(callback: (thumbnailErrors: IThumbnailErrorDto[]) => void): void {
-    this.httpClient.get<IThumbnailErrorDto[]>(
-      this.baseUri + `GetThumbnailErrors`,
-      callback
-    );
-  }
-
-  deleteThumbnailError(file: IFileDto, callback: () => void): void {
-    this.httpClient.post<IFileDto>(
-      this.baseUri + `DeleteThumbnailError`,
+  deleteThumbnailError(
+    dirEnum: DirectoryEnum,
+    file: IFile,
+    callback: () => void
+  ): void {
+    this.httpClient.post<IFile>(
+      this.baseUri + `DeleteThumbnailError?dirEnum=${dirEnum}`,
       file,
       callback
     );
   }
 
-  deleteManyThumbnailErrors(files: IFileDto[], callback: () => void): void {
-    this.httpClient.post<IFileDto[]>(
-      this.baseUri + `DeleteManyThumbnailErrors`,
+  deleteManyThumbnailErrors(
+    dirEnum: DirectoryEnum,
+    files: IFile[],
+    callback: () => void
+  ): void {
+    this.httpClient.post<IFile[]>(
+      this.baseUri + `DeleteManyThumbnailErrors?dirEnum=${dirEnum}`,
       files,
+      callback
+    );
+  }
+
+  GetCurrentThumbnail(callback: (workingThumbnail: IString) => void): void {
+    this.httpClient.get<IString>(
+      this.baseUri + `GetCurrentThumbnail`,
       callback
     );
   }

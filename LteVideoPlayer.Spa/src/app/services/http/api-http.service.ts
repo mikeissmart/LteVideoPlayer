@@ -3,12 +3,12 @@ import {
   HttpErrorResponse,
   HttpHeaders,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { environment } from 'src/environments/environment';
 import { LoadingService } from '../loading/loading.service';
 import { HttpService } from './http.service';
-import { ModelStateErrors } from './ModelStateErrors';
+import { environment } from '../../../environments/environment';
+import { ModelStateErrors } from '../../models/ModelStateErrors';
 
 @Injectable({
   providedIn: 'root',
@@ -16,11 +16,11 @@ import { ModelStateErrors } from './ModelStateErrors';
 export class ApiHttpService extends HttpService<ModelStateErrors> {
   public serverErrorMessage = '';
 
-  constructor(
-    private readonly router: Router,
-    private readonly loadingService: LoadingService,
-    private readonly httpClient: HttpClient
-  ) {
+  router = inject(Router);
+  loadingService = inject(LoadingService);
+  httpClient = inject(HttpClient);
+
+  constructor() {
     super();
 
     this.initialize(
@@ -63,8 +63,12 @@ export class ApiHttpService extends HttpService<ModelStateErrors> {
         });
         break;
       case 400: // bad request
-        const modelErrors = ModelStateErrors.convertErrors(httpError.error);
-        return modelErrors;
+        if (typeof httpError.error == 'string') {
+          console.error(httpError.error);
+        } else {
+          const modelErrors = ModelStateErrors.convertErrors(httpError.error);
+          return modelErrors;
+        }
     }
     return null;
   }
