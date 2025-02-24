@@ -15,6 +15,6 @@ namespace LteVideoPlayer.Api.Models.Dtos
         public required DirectoryEnum DirectoryEnum { get; set; }
         public required FileDto OriginalFile { get; set; }
         public required FileDto ConvertedFile { get; set; }
-        public int AudioStreamIndex { get; set; }
+        public int AudioStreamNumber { get; set; }
     }
 }

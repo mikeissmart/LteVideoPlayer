@@ -1,0 +1,10 @@
+<div
+  appScrollNearEnd
+  [class]="appClass()"
+  [thresholdPx]="500"
+  [manualEnable]="enable()"
+  [debounceTime]="debounceTime()"
+  (nearEnd)="nearEnd.emit()"
+>
+  <ng-content></ng-content>
+</div>

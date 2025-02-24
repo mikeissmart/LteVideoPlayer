@@ -1,5 +1,5 @@
 <ng-template #modal>
-  <div class="modal-header">
+  <div class="modal-header bg-dark text-white">
     <ng-content select="[header]"></ng-content>
     @if (showCloseBtn()) {
     <button
@@ -9,10 +9,10 @@
     ></button>
     }
   </div>
-  <div class="modal-body">
+  <div class="modal-body bg-dark text-white">
     <ng-content select="[body]"></ng-content>
   </div>
-  <div class="modal-footer">
+  <div class="modal-footer bg-dark text-white">
     <ng-content select="[footer]"></ng-content>
   </div>
 </ng-template>

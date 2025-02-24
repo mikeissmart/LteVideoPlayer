@@ -19,11 +19,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpGet("GetAllConvertFiles")]
-        public async Task<IActionResult> GetAllConvertFiles([FromQuery] DirectoryEnum dirEnum)
+        public async Task<IActionResult> GetAllConvertFiles()
         {
             try
             {
-                return Ok(await _convertFileService.GetAllConvertFilesAsync(dirEnum));
+                return Ok(await _convertFileService.GetAllConvertFilesAsync());
             }
             catch (Exception ex)
             {

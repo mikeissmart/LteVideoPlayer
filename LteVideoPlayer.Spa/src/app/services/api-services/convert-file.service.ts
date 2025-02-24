@@ -20,11 +20,10 @@ export class ConvertFileService {
   constructor(private readonly httpClient: ApiHttpService) {}
 
   getAllConvertFiles(
-    dirEnum: DirectoryEnum,
     callback: (convertVideoFiles: IConvertFile[]) => void
   ): void {
     this.httpClient.get<IConvertFile[]>(
-      this.baseUri + `GetAllConvertFiles?dirEnum=${dirEnum}`,
+      this.baseUri + `GetAllConvertFiles`,
       callback
     );
   }
@@ -70,15 +69,15 @@ export class ConvertFileService {
   }
 
   getCurrentConvertFile(
-    callback: (convertVideoFiles: IConvertFile) => void
+    callback: (convertVideoFile: IConvertFile | null) => void
   ): void {
-    this.httpClient.get<IConvertFile>(
+    this.httpClient.get<IConvertFile | null>(
       this.baseUri + 'GetCurrentConvertFile',
       callback
     );
   }
 
-  getVideoMeta(
+  getVideoMetadata(
     dirEnum: DirectoryEnum,
     file: IFile,
     callback: (meta: IMetadata) => void

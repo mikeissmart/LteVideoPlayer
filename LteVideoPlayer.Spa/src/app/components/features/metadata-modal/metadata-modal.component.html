@@ -1,0 +1,8 @@
+<app-modal #modal size="xl" [isStatic]="false" (close)="onClose()">
+  <div header>
+    <h4>Metadata</h4>
+  </div>
+  <div body>
+    <p [innerHTML]="_metadataHtml"></p>
+  </div>
+</app-modal>

@@ -1,6 +1,7 @@
 ﻿using LteVideoPlayer.Api.Configs;
 using LteVideoPlayer.Api.Helpers;
 using LteVideoPlayer.Api.Models.Dtos;
+using LteVideoPlayer.Api.Models.Entities;
 using LteVideoPlayer.Api.Models.Enums;
 using LteVideoPlayer.Api.Persistance.Repositories;
 using Microsoft.Extensions.Logging;
@@ -42,9 +43,8 @@ namespace LteVideoPlayer.Api.Services
 
                 foreach (var file in dirFiles.Files)
                 {
-                    file.File = file.File.Replace("_converting", "");
-                    var convert = await _convertFileRepository.GetConvertFileByOriginalAsync(dirEnum, file.Path, file.File);
-                    file.IsConvertQueued = convert == null || convert.EndedDate == null;
+                    var convertFiles = await _convertFileRepository.GetConvertFilesByOriginalAsync(dirEnum, file.Path, file.File);
+                    file.IsConvertQueued = convertFiles.Any(x => x.EndedDate == null);
                 }
 
                 return dirFiles;
@@ -71,12 +71,11 @@ namespace LteVideoPlayer.Api.Services
                 if (fileIndex == files.Count - 1)
                 {
                     // Last file go to next dir
-                    var fullPath = Path.Combine(videoConfig.RootVideoDir, file.Path);
+                    var fileVideoFullPath = Path.Combine(videoConfig.RootVideoDir, file.Path);
+                    var parentVideoFullPath = Directory.GetParent(fileVideoFullPath)!.FullName;
+                    var dirs = GetDirs(parentVideoFullPath, videoConfig, false);
 
-                    var parentDir = Directory.GetParent(fullPath);
-                    var dirs = GetDirs(parentDir!.FullName, videoConfig, false);
-
-                    var dirIndex = dirs.FindIndex(x => x.FullPath == fullPath);
+                    var dirIndex = dirs.FindIndex(x => x.FullPath == fileVideoFullPath);
                     if (dirIndex > -1 && dirIndex != dirs.Count - 1)
                     {
                         files = GetFiles(dirs[dirIndex + 1].Path, videoConfig, false);
@@ -98,7 +97,7 @@ namespace LteVideoPlayer.Api.Services
             }
         }
 
-        private List<DirDto> GetDirs(string path, IVideoConfig videoConfig, bool useThumbnailDir)
+        private List<DirDto> GetDirs(string path, VideoConfig videoConfig, bool useThumbnailDir)
         {
             var fullPath = Path.Combine(useThumbnailDir ? videoConfig.RootThumbnailDir! : videoConfig.RootVideoDir, path);
             return Directory.GetDirectories(fullPath)
@@ -112,7 +111,7 @@ namespace LteVideoPlayer.Api.Services
                 .ToList();
         }
 
-        private List<FileDto> GetFiles(string path, IVideoConfig videoConfig, bool useThumbnailDir)
+        private List<FileDto> GetFiles(string path, VideoConfig videoConfig, bool useThumbnailDir)
         {
             var fullPath = Path.Combine(useThumbnailDir ? videoConfig.RootThumbnailDir! : videoConfig.RootVideoDir, path);
             return Directory.GetFiles(fullPath)

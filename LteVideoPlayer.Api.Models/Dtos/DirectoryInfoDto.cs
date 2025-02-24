@@ -10,6 +10,9 @@ namespace LteVideoPlayer.Api.Models.Dtos
     public class DirectoryInfoDto : IRefactorType
     {
         public string FriendlyName { get; set; } = "";
+        public bool CanPlayVideo { get; set; }
+        public bool CanConvertVideo { get; set; }
+        public bool CanThumbnailVideo { get; set; }
         public bool AdminViewOnly { get; set; }
         public DirectoryEnum DirEnum { get; set; }
     }

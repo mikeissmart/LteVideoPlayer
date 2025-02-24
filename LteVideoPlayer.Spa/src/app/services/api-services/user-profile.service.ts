@@ -21,15 +21,6 @@ export class UserProfileService {
     this.currentUserProfile.set(JSON.parse(local!) as IUserProfile);
   }
 
-  getCurrentUserProfileFromLocal(): IUserProfile | null {
-    const local = localStorage.getItem(this.localUserProfile);
-    if (local == undefined || local == null) {
-      return null;
-    }
-
-    return JSON.parse(local) as IUserProfile;
-  }
-
   setCurrentUserProfile(userProfile: IUserProfile | null): void {
     if (userProfile == null) {
       localStorage.removeItem(this.localUserProfile);

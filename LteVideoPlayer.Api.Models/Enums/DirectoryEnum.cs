@@ -9,8 +9,8 @@ namespace LteVideoPlayer.Api.Models.Enums
     public enum DirectoryEnum
     {
         Unknown,
-        Camera,
         Tv,
-        Tv_Staging
+        Tv_Staging,
+        Cameras,
     }
 }

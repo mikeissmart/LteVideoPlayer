@@ -13,6 +13,19 @@ export class ModelStateErrors {
     return errors;
   }
 
+  addPropertyError(property: string, error: string) {
+    var propError = this.errors.find((x) => x.property == property);
+    if (propError == null) {
+      propError = {
+        property: property,
+        descriptions: [],
+      };
+      this.errors.push(propError);
+    }
+
+    propError.descriptions.push(error);
+  }
+
   hasError(property: string): boolean {
     return this.getPropertyErrors(property).length > 0;
   }

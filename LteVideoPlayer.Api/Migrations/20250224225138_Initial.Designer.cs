@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LteVideoPlayer.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250221043324_Initial1")]
-    partial class Initial1
+    [Migration("20250224225138_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,7 +33,7 @@ namespace LteVideoPlayer.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AudioStreamIndex")
+                    b.Property<int>("AudioStreamNumber")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedDate")

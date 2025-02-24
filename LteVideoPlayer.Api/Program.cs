@@ -51,9 +51,11 @@ internal class Program
         //app.UseHttpsRedirection();
 
         app.UseCors(x => x
-            .AllowAnyOrigin()
+            //.AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader());
+            .AllowAnyHeader()
+            .SetIsOriginAllowed(origin => true) // allow any origin
+            .AllowCredentials());
         app.UseAuthorization();
 
         app.MapControllers();

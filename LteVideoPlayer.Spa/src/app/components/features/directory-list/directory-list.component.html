@@ -1,0 +1,146 @@
+@if (curDirPathFile.dir != null && dirsAndFiles != null) {
+<div class="pb-3">
+  <p class="text-truncate">Path: \{{ curDirPathFile.path }}</p>
+</div>
+<div class="row pb-3">
+  <div class="col-3">
+    <button
+      class="btn btn-primary form-control"
+      (click)="popDir()"
+      [disabled]="curDirPathFile.path.length == 0"
+    >
+      Back
+    </button>
+  </div>
+  @if (curDirPathFile.isAdmin) {
+  <div class="col-3">
+    <button class="btn btn-warning form-control" (click)="showAllConvertList()">
+      Show Convert Queue
+    </button>
+  </div>
+  <div class="col-3">
+    <button
+      class="btn btn-info form-control"
+      (click)="showAllThumbnailErrorsList()"
+    >
+      Show Thumbnail Queue
+    </button>
+  </div>
+  }
+</div>
+<hr />
+@if (curDirPathFile.dir!.canConvertVideo && dirsAndFiles != null &&
+dirsAndFiles.files.length > 0) {
+<div class="row">
+  <div class="col-3">
+    <button
+      class="btn btn-info form-control"
+      [disabled]="isAnyFilesQueued()"
+      (click)="convertDirectory()"
+    >
+      Convert Directory
+    </button>
+  </div>
+</div>
+<hr />
+}
+<div class="row">
+  @for (item of dirsAndFiles.dirs; track $index) {
+  <div class="col-3 mb-3">
+    @if (curDirPathFile.dir.canThumbnailVideo) {
+    <div class="img-container mb-3">
+      <img
+        [src]="
+          thumbnailService.getFolderThumbnailUrl(
+            curDirPathFile.dir.dirEnum,
+            item.fullPath
+          )
+        "
+      />
+    </div>
+    }
+    <div class="d-flex justify-content-center">
+      <button
+        class="btn btn-primary text-truncate form-control"
+        (click)="pushDir(item)"
+      >
+        {{ item.name }}
+      </button>
+    </div>
+  </div>
+  }
+</div>
+@if (dirsAndFiles.dirs.length > 0 && dirsAndFiles.files.length > 0) {
+<hr />
+}
+<div class="row">
+  @for (item of dirsAndFiles.files; track $index) {
+  <div class="col-3 mb-3">
+    @if (curDirPathFile.dir.canThumbnailVideo) {
+    <div class="img-container mb-3">
+      <img
+        [src]="
+          thumbnailService.getFileThumbnailUrl(
+            curDirPathFile.dir.dirEnum,
+            item.fullPath
+          )
+        "
+      />
+    </div>
+    }
+    <div class="d-flex justify-content-center">
+      @if (curDirPathFile.dir.canPlayVideo) {
+      <button
+        [class]="
+          'btn text-truncate mx-1 form-control' +
+          (isHighlightFailedFile(item) ? ' btn-warning' : ' btn-primary')
+        "
+        [disabled]="item.isConvertQueued"
+        (click)="pushFile(item)"
+      >
+        {{ item.fileWOExt }}
+      </button>
+      } @if (curDirPathFile.dir.canConvertVideo) { @if (item.isConvertQueued) {
+      <button
+        class="btn btn-danger text-truncate mx-1 form-control"
+        (click)="showFileConvertList(item)"
+      >
+        Converting - {{ item.fileWOExt }}
+      </button>
+      } @else {
+      <button
+        class="btn btn-warning text-truncate mx-1 form-control"
+        (click)="convertFile(item, $index)"
+      >
+        {{ item.fileWOExt }}
+      </button>
+      } }
+    </div>
+  </div>
+  }
+</div>
+}
+<app-video-player-modal
+  #videoPlayerModal
+  (highlightFailedFile)="onHighlightFailedFile($event)"
+></app-video-player-modal>
+<app-convert-file-add-modal
+  #convertFileAddModel
+  (fileConvertQueued)="onFileConvertQueued($event)"
+></app-convert-file-add-modal>
+<app-convert-directory-add-modal
+  #convertDirectoryAddModel
+></app-convert-directory-add-modal>
+<app-modal #convertFileListModal size="xl" [isStatic]="false">
+  <div header>
+    <h4>Convert Files</h4>
+  </div>
+  <div body>
+    <app-convert-file-list
+      [convertFiles]="convertFiles"
+    ></app-convert-file-list>
+  </div>
+</app-modal>
+<app-thumbnail-error-list-modal
+  #thumbnailErrorListModel
+></app-thumbnail-error-list-modal>

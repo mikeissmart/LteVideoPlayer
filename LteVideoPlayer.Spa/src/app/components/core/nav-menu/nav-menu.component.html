@@ -1,8 +1,12 @@
-<nav #navMenu class="navbar navbar-expand-lg navbar-light bg-light px-3">
+<nav #navMenu class="navbar navbar-expand-lg">
   <div class="container-fluid">
     <div class="row">
       <div class="d-flex justify-content-center">
-        Profile {{ userProfileService.currentUserProfile()?.name }}
+        @if (userProfileService.currentUserProfile() != null) {
+        <button class="btn btn-outline-light" (click)="logout()">
+          {{ userProfileService.currentUserProfile()?.name }}
+        </button>
+        }
       </div>
     </div>
     <div
@@ -10,32 +14,33 @@
       id="navbarContent"
       [ngbCollapse]="isCollapsed"
     >
-      <ul class="navbar-nav me-auto">
+      <ul class="navbar-nav me-auto ms-auto">
         @if (userProfileService.currentUserProfile() != null) { @for (item of
         directories; track $index) {
         <li>
-          @if (!item.adminViewOnly || (item.adminViewOnly && isAdmin)) {
+          @if (!item.adminViewOnly || (item.adminViewOnly &&
+          directoryService.currentDirectory().isAdmin)) {
           <a
-            [class]="'btn' + selectedClass(item)"
-            (click)="updateRouteParams(isAdmin, item, '', '')"
+            [class]="'btn mx-1' + selectedClass(item)"
+            (click)="onChangeDirectory(item)"
             >{{ item.friendlyName }}</a
           >
           }
         </li>
         } }
       </ul>
-      <ul class="navbar-nav ms-auto">
+      <!-- <ul class="navbar-nav ms-auto">
         @if (userProfileService.currentUserProfile() != null) {
-        <li class="nav-item">
+        <li>
           <button
-            class="nav-link btn btn-link"
-            (click)="userProfileService.currentUserProfile.set(null)"
+            class="btn btn-outline-light"
+            (click)="userProfileService.setCurrentUserProfile(null)"
           >
             Change Profile
           </button>
         </li>
         }
-      </ul>
+      </ul> -->
     </div>
   </div>
 </nav>

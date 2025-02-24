@@ -42,7 +42,7 @@ export abstract class HttpService<TErrorResponse> {
   get<TResult>(
     api: string,
     callback: (result: TResult) => void,
-    errorCallback?: (error: TErrorResponse) => void
+    errorCallback?: (error: TErrorResponse | null) => void
   ): void {
     const loadingDone = this._loadingService.show();
     this._httpClient
@@ -55,7 +55,7 @@ export abstract class HttpService<TErrorResponse> {
         error: (httpError: HttpErrorResponse) => {
           loadingDone();
           const error = this._handleErrorCallback!!(httpError);
-          if (errorCallback && error !== null) errorCallback(error);
+          if (errorCallback) errorCallback(error);
         },
       });
   }

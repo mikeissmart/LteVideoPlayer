@@ -1,0 +1,54 @@
+<div class="row">
+  <div class="col">Currently Converting</div>
+  <div class="col d-flex flex-row-reverse">
+    <button class="btn btn-primary btn-sm" (click)="onFetchCurrentConvert()">
+      Refresh
+    </button>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    {{
+      _currentConvert == null ? "N/A" : _currentConvert.originalFile.fullPath
+    }}
+  </div>
+</div>
+<div class="row">
+  <div class="table-responsive">
+    <table class="table table-dark table-sm">
+      <thead>
+        <tr>
+          <th>Created Date</th>
+          <th>Process Time</th>
+          <th>Queue Index</th>
+          <th>Error</th>
+          <th>Original</th>
+          <th>Converted</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of convertFiles(); track $index) {
+        <tr>
+          <td>
+            {{ toDate(item.createdDate) | date : "yyyy-MM-dd HH:mm:ss" }}
+          </td>
+          <td>
+            {{
+              item.endedDate != null
+                ? (toTime(
+                    toDate(item.endedDate!).getTime() -
+                      toDate(item.startedDate!).getTime()
+                  ) | date : "HH:mm:ss")
+                : "N/A"
+            }}
+          </td>
+          <td>{{ item.queueIndex != -1 ? item.queueIndex : "N/A" }}</td>
+          <td>{{ item.errored ? "Yes" : "No" }}</td>
+          <td>{{ item.originalFile.fullPath }}</td>
+          <td>{{ item.convertedFile.fullPath }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

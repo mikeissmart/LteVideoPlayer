@@ -79,7 +79,9 @@ namespace LteVideoPlayer.Api.CronJobs
                     }
                     catch (Exception ex)
                     {
-                        // Consume error
+                        var logType = typeof(ILogger<>).MakeGenericType(GetType());
+                        var logger = (ILogger)scope.ServiceProvider.GetRequiredService(logType);
+                        logger.LogError(ex, ex.Message);
                         ;
                     }
                     finally

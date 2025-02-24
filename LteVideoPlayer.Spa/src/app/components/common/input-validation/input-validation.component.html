@@ -1,0 +1,12 @@
+<div #content>
+  <ng-content></ng-content>
+  @if (_errors.length > 0){
+  <div class="text-danger" role="alert">
+    <div class="float-left">
+      @for (item of _errors; track $index) {
+      <div>{{ item }}</div>
+      }
+    </div>
+  </div>
+  }
+</div>

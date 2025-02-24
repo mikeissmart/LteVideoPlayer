@@ -18,5 +18,7 @@ namespace LteVideoPlayer.Api.Models.Dtos
         public string FileWOExt { get => System.IO.Path.GetFileNameWithoutExtension(File); }
         public string FileExt { get => System.IO.Path.GetExtension(File); }
         public bool IsConvertQueued { get; set; }
+
+        public override string ToString() => FullPath;
     }
 }

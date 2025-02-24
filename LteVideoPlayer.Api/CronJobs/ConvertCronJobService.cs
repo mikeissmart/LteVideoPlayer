@@ -33,18 +33,10 @@ namespace LteVideoPlayer.Api.CronJobs
             _directoryService = scope.ServiceProvider.GetRequiredService<IDirectoryService>();
             _convertFileService = scope.ServiceProvider.GetRequiredService<IConvertFileService>();
 
-            foreach (DirectoryEnum dirEnum in Enum.GetValues(typeof(DirectoryEnum)))
+            var convertFiles = await _convertFileService.GetAllIncompleteConvertFilesAsync();
+            foreach (var file in convertFiles)
             {
-                var videoConfig = _videoConfigService.GetVideoConfig(dirEnum);
-                if (!videoConfig.CanConvertVideo)
-                    continue;
-
-                if (!Directory.Exists(videoConfig.RootVideoDir))
-                    Directory.CreateDirectory(videoConfig.RootVideoDir);
-                if (!Directory.Exists(videoConfig.ConvertToConfig!.RootVideoDir))
-                    Directory.CreateDirectory(videoConfig.ConvertToConfig!.RootVideoDir);
-
-                await ConvertFilesAsync(videoConfig, dirEnum, cancellationToken);
+                await ConvertFilesAsync(file, cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                     break;
             }
@@ -52,97 +44,77 @@ namespace LteVideoPlayer.Api.CronJobs
             return null;
         }
 
-        private async Task ConvertFilesAsync(IVideoConfig videoConfig, DirectoryEnum dirEnum, CancellationToken cancellationToken)
+        private async Task ConvertFilesAsync(ConvertFileDto convertFile, CancellationToken cancellationToken)
         {
-            var convertFiles = await _convertFileService.GetAllIncompleteConvertFilesAsync(dirEnum);
-            foreach (var convertFile in convertFiles)
+            var videoConfig = _videoConfigService.GetVideoConfig(convertFile.DirectoryEnum);
+            if (!videoConfig.CanConvertVideo)
+                return;
+
+            _convertFile = convertFile;
+            var stage = "";
+            try
             {
-                _convertFile = convertFile;
-                if (cancellationToken.IsCancellationRequested)
-                    break;
+                var videoRootDirFullPath = Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.FullPath);
+                var activeRootDirFullPath = Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.Path, "Converting_" + convertFile.ConvertedFile.File);
 
-                var stage = "";
-                try
+                convertFile.StartedDate = DateTime.Now;
+                await _convertFileService.UpdateConvertAsync(convertFile);
+
+                var threadStr = _fmegConfig.FfmpegThreads > 0
+                    ? $"-threads {_fmegConfig.FfmpegThreads}"
+                    : "";
+
+                stage = "Starting convert";
+                var result = await ProcessHelper.RunProcessAsync(
+                    _fmegConfig.RootFfmpegFile,
+                    $@"-i ""{videoRootDirFullPath}"" {threadStr} -map 0:v:0 -map 0:a:{convertFile.AudioStreamNumber - 1} -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{activeRootDirFullPath}""",
+                    cancellationToken);
+
+                stage = "Check if convert sucessfull";
+                if (!File.Exists(activeRootDirFullPath))
                 {
-                    var renameFileName = convertFile.OriginalFile.File + "_converting";
-                    var renameRootDirFullPath = Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.Path, renameFileName);
-
-                    var activeFileName = "Converting_" + convertFile.ConvertedFile.File;
-                    var activeRootDirFullPath = Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.Path, activeFileName);
-
-                    stage = "Renaming original file";
-                    if (!File.Exists(renameRootDirFullPath))
-                    {
-                        File.Move(
-                            Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.FullPath),
-                            renameRootDirFullPath,
-                            true);
-                    }
-
-                    convertFile.StartedDate = DateTime.Now;
-                    await _convertFileService.UpdateConvertAsync(convertFile);
-
-                    var threadStr = _fmegConfig.FfmpegThreads > 0
-                        ? $"-threads {_fmegConfig.FfmpegThreads}"
-                        : "";
-
-                    var result = await ProcessHelper.RunProcessAsync(
-                        _fmegConfig.RootFfmpegFile,
-                        $@"-i ""{renameRootDirFullPath}"" {threadStr} -map 0:v:0 -map 0:a:{convertFile.AudioStreamIndex} -c:v libx264 -crf 23 -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac -ac 2 -b:a 128k -y ""{activeRootDirFullPath}""",
-                        cancellationToken);
-
-                    stage = "Check if convert sucessfull";
-                    if (!File.Exists(activeRootDirFullPath))
-                    {
-                        convertFile.Errored = true;
-                        convertFile.Output = result.Error;
-                    }
-                    else
-                    {
-                        stage = "Create Convert directory";
-                        var convertRootDirFullPath = Path.Combine(videoConfig.ConvertToConfig!.RootVideoDir, convertFile.ConvertedFile.Path);
-                        if (!Directory.Exists(convertRootDirFullPath))
-                            Directory.CreateDirectory(convertRootDirFullPath);
-
-                        stage = "Move Converted File";
-                        File.Move(
-                            activeRootDirFullPath,
-                            Path.Combine(videoConfig.ConvertToConfig!.RootVideoDir, convertFile.ConvertedFile.FullPath),
-                            true);
-
-                        stage = "Delete Original File";
-                        //File.Delete(renameRootDirFullPath);
-
-                        if (Directory.GetFiles(Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.FullPath)).Length == 0
-                            || Directory.GetDirectories(Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.FullPath)).Length == 0)
-                        {
-                            stage = "Delete Original Directory";
-                            Directory.Delete(convertFile.OriginalFile.Path);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(stage + ": " + ex.Message);
                     convertFile.Errored = true;
-                    convertFile.Output = stage + ": " + ex.Message;
+                    convertFile.Output = result.Error;
                 }
-                finally
+                else
                 {
-                    convertFile.EndedDate = DateTime.Now;
-                    lock (_convertFileService)
+                    stage = "Create Convert directory";
+                    var convertRootDirFullPath = Path.Combine(videoConfig.ConvertRootFullPath, convertFile.ConvertedFile.Path);
+                    if (!Directory.Exists(convertRootDirFullPath))
+                        Directory.CreateDirectory(convertRootDirFullPath);
+
+                    stage = "Move Converted File";
+                    File.Move(
+                        activeRootDirFullPath,
+                        Path.Combine(videoConfig.ConvertRootFullPath, convertFile.ConvertedFile.FullPath),
+                        true);
+
+                    stage = "Delete Original File";
+                    //File.Delete(videoRootDirFullPath);
+
+                    var checkDeletePath = Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.Path);
+                    if (Directory.GetFiles(checkDeletePath).Length == 0
+                        && Directory.GetDirectories(checkDeletePath).Length == 0)
                     {
-                        if (convertFile.Errored)
-                            _convertFileService.UpdateConvertAsync(convertFile).Wait();
-                        else
-                            _convertFileService.DeleteConvertAsync(convertFile).Wait();
+                        stage = "Delete Original Directory";
+                        Directory.Delete(checkDeletePath);
                     }
                 }
             }
-        }
-
-        private async Task ProcessConvertAsync()
-        {
+            catch (Exception ex)
+            {
+                _logger.LogError(stage + ": " + ex.Message);
+                convertFile.Errored = true;
+                convertFile.Output = stage + ": " + ex.Message;
+            }
+            finally
+            {
+                convertFile.EndedDate = DateTime.Now;
+                if (convertFile.Errored)
+                    await _convertFileService.UpdateConvertAsync(convertFile);
+                else
+                    await _convertFileService.DeleteConvertAsync(convertFile);
+            }
         }
     }
 }

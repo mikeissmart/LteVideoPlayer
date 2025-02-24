@@ -13,11 +13,10 @@ export class ThumbnailService {
   constructor(private readonly httpClient: ApiHttpService) {}
 
   getAllThumbnailErrors(
-    dirEnum: DirectoryEnum,
     callback: (thumbnailErrors: IThumbnailError[]) => void
   ): void {
     this.httpClient.get<IThumbnailError[]>(
-      this.baseUri + `GetAllThumbnailErrors?dirEnum=${dirEnum}`,
+      this.baseUri + `GetAllThumbnailErrors`,
       callback
     );
   }

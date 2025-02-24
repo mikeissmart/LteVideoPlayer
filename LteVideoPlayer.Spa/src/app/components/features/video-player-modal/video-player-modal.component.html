@@ -1,0 +1,152 @@
+<app-modal #modal size="xl" [isStatic]="true" (close)="onClose()">
+  <div header>
+    <h4>
+      {{ _data.fileIndex + 1 }} of {{ _data.totalFiles }} -
+      {{ _data.currentFile?.fullPath }}
+    </h4>
+  </div>
+  <div body>
+    @if (_data.currentFile != null) {
+    <video
+      class="mb-3"
+      width="100%"
+      #player
+      controls
+      (loadeddata)="onLoadedData(player)"
+      (ended)="onPlayerEnded()"
+      [src]="
+        _data.currentFile != null
+          ? directoryService.streamFileUrl(
+              directoryService.currentDirectory().dir!.dirEnum,
+              _data.currentFile!
+            )
+          : ''
+      "
+      (keydown)="onKeyDown($event)"
+      crossorigin="anonymous"
+    ></video>
+    <div class="row mb-3">
+      <div class="col-lg-12">
+        <div class="d-flex justify-content-evenly">
+          <button
+            class="col btn btn-primary form-control"
+            (click)="onRestartPlayer()"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            Restart
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(-5)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            << 5 sec
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(-30)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            << 30 sec
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(-120)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            << 2 min
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(-300)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            << 5 min
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-lg-12">
+        <div class="d-flex justify-content-evenly">
+          <button
+            class="col btn btn-primary"
+            (click)="onPlayerEnded()"
+            [disabled]="this._data.nextFile == null"
+          >
+            Play Next
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(5)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            >> 5 sec
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(30)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            >> 30 sec
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(120)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            >> 2 min
+          </button>
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onSkip(300)"
+            [disabled]="!this._data.isDataLoaded"
+          >
+            >> 5 min
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="d-flex justify-content-evenly">
+          @if (this.directoryService.currentDirectory().dir?.canThumbnailVideo)
+          {
+          <button
+            class="col btn btn-danger"
+            (click)="onDeleteThumbnail()"
+            [disabled]="
+              !(
+                _data.isDataLoaded &&
+                _data.hasThumbnail &&
+                this.directoryService.currentDirectory().dir?.canThumbnailVideo
+              )
+            "
+          >
+            Delete Thumbnail
+          </button>
+          } @if (this.directoryService.currentDirectory().dir?.canConvertVideo)
+          {
+          <button
+            class="col offset-1 btn btn-primary"
+            (click)="onMetadata()"
+            [disabled]="
+              !(
+                _data.isDataLoaded &&
+                this.directoryService.currentDirectory().dir?.canConvertVideo
+              )
+            "
+          >
+            Metadata
+          </button>
+          }
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</app-modal>
+<app-metadata-modal
+  #metadataModal
+  [file]="_data.metadataFile"
+></app-metadata-modal>

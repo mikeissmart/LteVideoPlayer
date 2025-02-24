@@ -11,5 +11,7 @@ namespace LteVideoPlayer.Api.Models.Dtos
         public string Path { get; set; } = "";
         public string Name { get; set; } = "";
         public string FullPath { get => System.IO.Path.Combine(Path, Name); }
+
+        public override string ToString() => FullPath;
     }
 }

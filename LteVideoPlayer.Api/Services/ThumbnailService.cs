@@ -18,7 +18,7 @@ namespace LteVideoPlayer.Api.Services
         string GetFileThumbnail(DirectoryEnum dirEnum, string fullPath);
         void DeleteThumbnail(DirectoryEnum dirEnum, string fullPath);
         Task<ThumbnailError> AddOrUpdateThumbnailErrorsAsync(DirectoryEnum dirEnum, FileDto file, string error);
-        Task<List<ThumbnailErrorDto>> GetAllThumbnailErrorsAsync(DirectoryEnum dirEnum);
+        Task<List<ThumbnailErrorDto>> GetAllThumbnailErrorsAsync();
         Task DeleteThumbnailErrorAsync(DirectoryEnum dirEnum, FileDto file);
         string GetCurrentThumbnail();
     }
@@ -60,7 +60,7 @@ namespace LteVideoPlayer.Api.Services
 
                 foreach (var subpath in Directory.GetDirectories(thumbnailRootFullPath))
                 {
-                    var tn = GetFolderThumbnail(dirEnum, subpath.Replace(videoConfig.RootThumbnailDir!, ""));
+                    var tn = GetFolderThumbnail(dirEnum, subpath.Replace(videoConfig.RootThumbnailDir, "").Substring(1));
                     if (tn != "")
                         return tn;
                 }
@@ -145,11 +145,11 @@ namespace LteVideoPlayer.Api.Services
             }
         }
 
-        public async Task<List<ThumbnailErrorDto>> GetAllThumbnailErrorsAsync(DirectoryEnum dirEnum)
+        public async Task<List<ThumbnailErrorDto>> GetAllThumbnailErrorsAsync()
         {
             try
             {
-                return _mapper.Map<List<ThumbnailErrorDto>>(await _thumbnailErrorRepository.GetAllThumbnailErrorsAsync(dirEnum));
+                return _mapper.Map<List<ThumbnailErrorDto>>(await _thumbnailErrorRepository.GetAllThumbnailErrorsAsync());
             }
             catch (Exception ex)
             {
@@ -181,7 +181,7 @@ namespace LteVideoPlayer.Api.Services
             return _thumbnailCronJobService.CurrentThumbnail();
         }
 
-        private string GetThumbnailRootFullPath(IVideoConfig config, string fullPath)
+        private string GetThumbnailRootFullPath(VideoConfig config, string fullPath)
         {
             var thumbnailRootFullPath = Path.Combine(config.RootThumbnailDir!, fullPath);
 

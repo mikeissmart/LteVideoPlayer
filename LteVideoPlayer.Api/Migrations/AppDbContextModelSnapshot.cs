@@ -30,7 +30,7 @@ namespace LteVideoPlayer.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AudioStreamIndex")
+                    b.Property<int>("AudioStreamNumber")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedDate")

@@ -62,7 +62,7 @@ namespace LteVideoPlayer.Api.Services
         {
             try
             {
-                if (await _userProfileRepository.GetUserProfileByNameAsync(userProfile.Name) == null)
+                if (await _userProfileRepository.GetUserProfileByNameAsync(userProfile.Name) != null)
                 {
                     var error = "User profile with name already exists";
                     if (modelState != null)

@@ -1,1 +1,52 @@
-<p>user-profile-select works!</p>
+<br />
+<h4>Select Profile</h4>
+<br />
+<div class="row">
+  @for (item of userProfiles; track $index) {
+  <div class="col-4 pb-4">
+    <div class="card text-center bg-dark text-light border-light">
+      <div class="card-header border-light">
+        <div class="card-title">
+          {{ item.name }}
+        </div>
+      </div>
+      <div class="card-body">
+        <button
+          class="btn btn-primary"
+          (click)="openUserProfileAddEditModal(item)"
+        >
+          Edit
+        </button>
+        &nbsp;
+        <button
+          class="btn btn-success"
+          (click)="userProfileService.setCurrentUserProfile(item)"
+        >
+          Select
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+  <div class="col-4">
+    <div class="card text-center bg-dark text-light border-light">
+      <div class="card-header border-light">
+        <div class="card-title">Create New Profile</div>
+      </div>
+      <div class="card-body">
+        <button
+          class="btn btn-success"
+          (click)="openUserProfileAddEditModal(null)"
+        >
+          Create New Profile
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<app-user-profile-add-edit-modal
+  #userProfileAddEditModal
+  [userProfile]="addEditUserProfile"
+  (userProfileChange)="onUserProfileSave()"
+  (close)="onUserProfileAddEditModalClose()"
+></app-user-profile-add-edit-modal>

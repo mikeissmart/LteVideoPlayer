@@ -5,6 +5,7 @@ using LteVideoPlayer.Api.Models.Entities;
 using LteVideoPlayer.Api.Models.Enums;
 using LteVideoPlayer.Api.Services;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
@@ -37,25 +38,26 @@ namespace LteVideoPlayer.Api.CronJobs
             _directoryService = scope.ServiceProvider.GetRequiredService<IDirectoryService>();
             _thumbnailService = scope.ServiceProvider.GetRequiredService<IThumbnailService>();
 
-
+            _thumbnailErrors = await _thumbnailService.GetAllThumbnailErrorsAsync();
             foreach (DirectoryEnum dirEnum in Enum.GetValues(typeof(DirectoryEnum)))
             {
+                if (dirEnum == DirectoryEnum.Unknown)
+                    continue;
+
                 var videoConfig = _videoConfigService.GetVideoConfig(dirEnum);
                 if (!videoConfig.CanThumbnailVideo)
                     continue;
-
-                _thumbnailErrors = await _thumbnailService.GetAllThumbnailErrorsAsync(dirEnum);
 
                 if (!Directory.Exists(videoConfig.RootVideoDir))
                     Directory.CreateDirectory(videoConfig.RootVideoDir);
                 if (!Directory.Exists(videoConfig.RootThumbnailDir!))
                     Directory.CreateDirectory(videoConfig.RootThumbnailDir!);
 
-                await CreateThumbnailsAsync(videoConfig, dirEnum, cancellationToken);
+                await CreateThumbnailsAsync(videoConfig, cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                     break;
 
-                await PruneThumbnailsAsync(videoConfig, dirEnum, cancellationToken);
+                await PruneThumbnailsAsync(videoConfig, cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                     break;
             }
@@ -63,29 +65,29 @@ namespace LteVideoPlayer.Api.CronJobs
             return null;
         }
 
-        private async Task CreateThumbnailsAsync(IVideoConfig videoConfig, DirectoryEnum dirEnum, CancellationToken cancellationToken)
+        private async Task CreateThumbnailsAsync(VideoConfig videoConfig, CancellationToken cancellationToken)
         {
-            var videos = await GetDirectoryVideosMissingThumbnailsAsync(videoConfig, dirEnum, "");
+            var videos = await GetDirectoryVideosMissingThumbnailsAsync(videoConfig, "");
             if (cancellationToken.IsCancellationRequested)
                 return;
 
             foreach (var video in videos)
             {
                 _currentThumbnail = $"Creating thumbnail for: {video.FullPath}";
-                await CreateThunbnailAsync(videoConfig, dirEnum, video, cancellationToken);
+                await CreateThunbnailAsync(videoConfig, video, cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                     break;
             }
         }
 
-        private async Task<List<FileDto>> GetDirectoryVideosMissingThumbnailsAsync(IVideoConfig videoConfig, DirectoryEnum dirEnum, string path)
+        private async Task<List<FileDto>> GetDirectoryVideosMissingThumbnailsAsync(VideoConfig videoConfig, string path)
         {
             var missingVideos = new List<FileDto>();
             var thumbnailRootFullPath = Path.Combine(videoConfig.RootThumbnailDir!, path);
             if (!Directory.Exists(thumbnailRootFullPath))
                 Directory.CreateDirectory(thumbnailRootFullPath);
 
-            var dirsAndFiles = await _directoryService.GetDirsAndFilesAsync(dirEnum, path, false);
+            var dirsAndFiles = await _directoryService.GetDirsAndFilesAsync(videoConfig.DirectoryEnum, path, false);
             if (dirsAndFiles.Files.Count > 0)
             {
                 var thumbnails = FilePathsToFilesDto(
@@ -101,7 +103,7 @@ namespace LteVideoPlayer.Api.CronJobs
                 {
                     var error = _thumbnailErrors.FirstOrDefault(x => x.File.FullPath ==  file.FullPath);
                     if (error == null ||
-                        (error.LastError.AddDays(videoConfig.RetryThumbnailAfterDays!.Value) < DateTime.Now 
+                        (error.LastError.AddDays(videoConfig.RetryThumbnailAfterDays) < DateTime.Now 
                         && error.TimesFailed < videoConfig.MaxThumbnailRetrys!))
                     {
                         missingVideos.Add(file);
@@ -110,12 +112,12 @@ namespace LteVideoPlayer.Api.CronJobs
             }
 
             foreach (var dir in dirsAndFiles.Dirs)
-                missingVideos.AddRange(await GetDirectoryVideosMissingThumbnailsAsync(videoConfig, dirEnum, dir.FullPath));
+                missingVideos.AddRange(await GetDirectoryVideosMissingThumbnailsAsync(videoConfig, dir.FullPath));
 
             return missingVideos;
         }
 
-        private List<FileDto> GetPrunableThumbnails(IVideoConfig videoConfig, DirectoryEnum dirEnum, List<FileDto> videos, string path)
+        private List<FileDto> GetPrunableThumbnails(VideoConfig videoConfig, List<FileDto> videos, string path)
         {
             var thumbnails = FilePathsToFilesDto(
                 videoConfig,
@@ -132,7 +134,7 @@ namespace LteVideoPlayer.Api.CronJobs
             return retThumbnail;
         }
 
-        private List<FileDto> FilePathsToFilesDto(IVideoConfig videoConfig, IEnumerable<string> paths, bool isVideoPath)
+        private List<FileDto> FilePathsToFilesDto(VideoConfig videoConfig, IEnumerable<string> paths, bool isVideoPath)
         {
             var files = new List<FileDto>();
             foreach (var path in paths)
@@ -155,7 +157,7 @@ namespace LteVideoPlayer.Api.CronJobs
             return files;
         }
 
-        private async Task CreateThunbnailAsync(IVideoConfig videoConfig, DirectoryEnum dirEnum, FileDto videoFile, CancellationToken cancellationToken)
+        private async Task CreateThunbnailAsync(VideoConfig videoConfig, FileDto videoFile, CancellationToken cancellationToken)
         {
             (float duration, string durationError) = await GetDurationAsync(videoConfig, videoFile, cancellationToken);
             if (cancellationToken.IsCancellationRequested)
@@ -163,7 +165,7 @@ namespace LteVideoPlayer.Api.CronJobs
 
             if (duration <= 0)
             {
-                await _thumbnailService.AddOrUpdateThumbnailErrorsAsync(dirEnum, videoFile, durationError);
+                await _thumbnailService.AddOrUpdateThumbnailErrorsAsync(videoConfig.DirectoryEnum, videoFile, durationError);
                 return;
             }
 
@@ -188,12 +190,12 @@ namespace LteVideoPlayer.Api.CronJobs
                 cancellationToken);
 
             if (!File.Exists(thumbnailRootFullPath))
-                await _thumbnailService.AddOrUpdateThumbnailErrorsAsync(dirEnum, videoFile, result.Error);
+                await _thumbnailService.AddOrUpdateThumbnailErrorsAsync(videoConfig.DirectoryEnum, videoFile, result.Error);
             else
-                await _thumbnailService.DeleteThumbnailErrorAsync(dirEnum, videoFile);
+                await _thumbnailService.DeleteThumbnailErrorAsync(videoConfig.DirectoryEnum, videoFile);
         }
 
-        private async Task<(float, string)> GetDurationAsync(IVideoConfig videoConfig, FileDto file, CancellationToken cancellationToken)
+        private async Task<(float, string)> GetDurationAsync(VideoConfig videoConfig, FileDto file, CancellationToken cancellationToken)
         {
             var result = await ProcessHelper.RunProcessAsync(
                 _fmegConfig.RootFfprobeFile,
@@ -218,40 +220,76 @@ namespace LteVideoPlayer.Api.CronJobs
             return $"{((int)t.TotalHours).ToString("D2")}:{t.Minutes.ToString("D2")}:{t.Seconds.ToString("D2")}";
         }
 
-        private async Task PruneThumbnailsAsync(IVideoConfig videoConfig, DirectoryEnum dirEnum, CancellationToken cancellationToken)
+        private async Task PruneThumbnailsAsync(VideoConfig videoConfig, CancellationToken cancellationToken)
         {
-            var thumbnails = await GetDirectoryThumbnailsWithoutVIdeosAsync(videoConfig, dirEnum, "");
+            var fileThumbnails = await GetFileThumbnailsWithoutVideosAsync(videoConfig, "");
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            foreach (var thumbnail in thumbnails)
+            foreach (var thumbnail in fileThumbnails)
             {
                 File.Delete(Path.Combine(videoConfig.RootThumbnailDir!, thumbnail.FullPath));
                 if (cancellationToken.IsCancellationRequested)
                     break;
             }
+
+            (List<DirDto> directoryThumbnails, bool _) = await GetDirectoryThumbnailsWithoutVideosAsync(videoConfig, "");
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            foreach (var thumbnail in directoryThumbnails)
+            {
+                Directory.Delete(Path.Combine(videoConfig.RootThumbnailDir!, thumbnail.FullPath));
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+            }
         }
 
-        private async Task<List<FileDto>> GetDirectoryThumbnailsWithoutVIdeosAsync(IVideoConfig videoConfig, DirectoryEnum dirEnum, string path)
+        private async Task<List<FileDto>> GetFileThumbnailsWithoutVideosAsync(VideoConfig videoConfig, string path)
         {
             var pruneThumbnails = new List<FileDto>();
 
-            var dirsAndFiles = await _directoryService.GetDirsAndFilesAsync(dirEnum, path, true);
+            var dirsAndFiles = await _directoryService.GetDirsAndFilesAsync(videoConfig.DirectoryEnum, path, true);
             if (dirsAndFiles.Files.Count > 0)
             {
-                var videos = FilePathsToFilesDto(
-                    videoConfig,
-                    Directory.GetFiles(Path.Combine(videoConfig.RootVideoDir, path)),
-                    true);
+                var rootVideoDirPath = Path.Combine(videoConfig.RootVideoDir, path);
+                if (Directory.Exists(rootVideoDirPath))
+                {
+                    var videos = FilePathsToFilesDto(
+                        videoConfig,
+                        Directory.GetFiles(Path.Combine(videoConfig.RootVideoDir, path)),
+                        true);
 
-                pruneThumbnails.AddRange(dirsAndFiles.Files
-                    .Where(x => !videos.Any(y => x.FileWOExt == y.FileWOExt)));
+                    pruneThumbnails.AddRange(dirsAndFiles.Files
+                        .Where(x => !videos.Any(y => x.FileWOExt == y.FileWOExt)));
+                }
+                else
+                    pruneThumbnails.AddRange(dirsAndFiles.Files);
             }
 
-            foreach (var dir in dirsAndFiles.Dirs)
-                pruneThumbnails.AddRange(await GetDirectoryThumbnailsWithoutVIdeosAsync(videoConfig, dirEnum, dir.FullPath));
-
             return pruneThumbnails;
+        }
+
+        private async Task<(List<DirDto>, bool)> GetDirectoryThumbnailsWithoutVideosAsync(VideoConfig videoConfig, string path)
+        {
+            var pruneThumbnails = new List<DirDto>();
+
+            var addSelf = false;
+            var dirsAndFiles = await _directoryService.GetDirsAndFilesAsync(videoConfig.DirectoryEnum, path, true);
+            if (dirsAndFiles.Dirs.Count == 0 && dirsAndFiles.Files.Count == 0)
+                addSelf = true;
+            else if (dirsAndFiles.Files.Count == 0)
+            {
+                foreach (var dir in dirsAndFiles.Dirs)
+                {
+                    (List<DirDto> result, bool addDir) = await GetDirectoryThumbnailsWithoutVideosAsync(videoConfig, dir.FullPath);
+                    if (addDir)
+                        pruneThumbnails.Add(dir);
+                    pruneThumbnails.AddRange(result);
+                }
+            }
+
+            return (pruneThumbnails, addSelf);
         }
     }
 }

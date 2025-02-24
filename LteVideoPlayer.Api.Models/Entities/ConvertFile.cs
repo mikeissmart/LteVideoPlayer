@@ -16,7 +16,7 @@ namespace LteVideoPlayer.Api.Models.Entities
         public bool Errored { get; set; }
         public required FileDataType OriginalFile { get; set; }
         public required FileDataType ConvertedFile { get; set; }
-        public int AudioStreamIndex { get; set; } = 0;
+        public int AudioStreamNumber { get; set; } = 0;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? StartedDate { get; set; }
         public DateTime? EndedDate { get; set; }

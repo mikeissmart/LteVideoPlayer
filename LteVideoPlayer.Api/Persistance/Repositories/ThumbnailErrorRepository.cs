@@ -5,7 +5,7 @@ namespace LteVideoPlayer.Api.Persistance.Repositories
 {
     public interface IThumbnailErrorRepository : IRepository<ThumbnailError>
     {
-        Task<List<ThumbnailError>> GetAllThumbnailErrorsAsync(DirectoryEnum dirEnum);
+        Task<List<ThumbnailError>> GetAllThumbnailErrorsAsync();
         Task<ThumbnailError?> GetThumbnailErrorByPathAndFileAsync(DirectoryEnum dirEnum, string path, string file);
     }
 
@@ -16,9 +16,8 @@ namespace LteVideoPlayer.Api.Persistance.Repositories
             
         }
 
-        public async Task<List<ThumbnailError>> GetAllThumbnailErrorsAsync(DirectoryEnum dirEnum)
+        public async Task<List<ThumbnailError>> GetAllThumbnailErrorsAsync()
             => await GetAsync(
-                predicate: x => x.DirectoryEnum == dirEnum,
                 orderBy: x => x
                     .OrderBy(x => x.LastError)
                     .ThenBy(x => x.Id));

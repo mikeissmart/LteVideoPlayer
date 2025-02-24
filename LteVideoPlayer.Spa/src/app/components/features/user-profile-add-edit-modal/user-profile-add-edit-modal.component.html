@@ -1,0 +1,25 @@
+<app-modal #modal size="xl" [isStatic]="false" (onClose)="onClose()">
+  <div header>
+    <h4>{{ _userProfile.id == 0 ? "Add" : "Edit" }} User</h4>
+  </div>
+  <div body>
+    <div class="row">
+      <div class="col-12 mb-3">
+        <label for="name" class="form-label">Name:</label>
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="_userProfile.name"
+        />
+        @for (item of _errors?.getPropertyErrors('name'); track $index) {
+        <div class="float-left">{{ item }}</div>
+        }
+      </div>
+    </div>
+  </div>
+  <div footer>
+    <button class="btn btn-danger" (click)="close()">Cancel</button>
+    &nbsp;
+    <button class="btn btn-primary" (click)="onSave()">Save</button>
+  </div>
+</app-modal>

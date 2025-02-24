@@ -4,7 +4,7 @@
 
 export enum DirectoryEnum {
 	Unknown = 0,
-	Camera = 1,
-	Tv = 2,
-	Tv_Staging = 3
+	Tv = 1,
+	Tv_Staging = 2,
+	Cameras = 3
 }

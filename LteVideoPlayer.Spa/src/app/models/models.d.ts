@@ -12,10 +12,11 @@ export interface IConvertFile
 	errored: boolean;
 	originalFile: IFileDataType;
 	convertedFile: IFileDataType;
-	audioStreamIndex: number;
+	audioStreamNumber: number;
 	createdDate: Date;
 	startedDate: Date | null;
 	endedDate: Date | null;
+	queueIndex: number;
 }
 export interface IConvertManyFile
 {
@@ -26,7 +27,7 @@ export interface ICreateConvert
 	directoryEnum: DirectoryEnum;
 	originalFile: IFile;
 	convertedFile: IFile;
-	audioStreamIndex: number;
+	audioStreamNumber: number;
 }
 export interface ICreateManyConvert
 {
@@ -41,6 +42,9 @@ export interface IDir
 export interface IDirectoryInfo
 {
 	friendlyName: string;
+	canPlayVideo: boolean;
+	canConvertVideo: boolean;
+	canThumbnailVideo: boolean;
 	adminViewOnly: boolean;
 	dirEnum: DirectoryEnum;
 }

@@ -1,1 +1,5 @@
-<p>dashboard works!</p>
+@if (userProfileService.currentUserProfile() == null) {
+<app-user-profile-select></app-user-profile-select>
+} @else {
+<app-directory-list></app-directory-list>
+}

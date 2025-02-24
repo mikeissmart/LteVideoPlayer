@@ -17,13 +17,14 @@ namespace LteVideoPlayer.Api.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    DirectoryEnum = table.Column<int>(type: "int", nullable: false),
                     Output = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Errored = table.Column<bool>(type: "bit", nullable: false),
                     OriginalFile_Path = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OriginalFile_File = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ConvertedFile_Path = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ConvertedFile_File = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AudioStreamIndex = table.Column<int>(type: "int", nullable: false),
+                    AudioStreamNumber = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     StartedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -40,6 +41,7 @@ namespace LteVideoPlayer.Api.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TimesFailed = table.Column<int>(type: "int", nullable: false),
+                    DirectoryEnum = table.Column<int>(type: "int", nullable: false),
                     Error = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     File_Path = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     File_File = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -56,8 +58,7 @@ namespace LteVideoPlayer.Api.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    IsAdmin = table.Column<bool>(type: "bit", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {

@@ -11,14 +11,16 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using System;
+using System.Collections.Generic;
 
 namespace LteVideoPlayer.Api.Services
 {
     public interface IConvertFileService : IService
     {
-        Task<List<ConvertFileDto>> GetAllConvertFilesAsync(DirectoryEnum dirEnum);
-        Task<List<ConvertFileDto>> GetAllIncompleteConvertFilesAsync(DirectoryEnum dirEnum);
-        Task<List<ConvertFileDto>> GetAllCompletedConvertFilesAsync(DirectoryEnum dirEnum);
+        Task<List<ConvertFileDto>> GetAllConvertFilesAsync();
+        Task<List<ConvertFileDto>> GetDirectoryIncompleteConvertFilesAsync(DirectoryEnum dirEnum);
+        Task<List<ConvertFileDto>> GetAllIncompleteConvertFilesAsync();
+        Task<List<ConvertFileDto>> GetDirectoryCompletedConvertFilesAsync(DirectoryEnum dirEnum);
         Task<List<ConvertFileDto>> GetConvertFileByOriginalFileAsync(DirectoryEnum dirEnum, FileDto file);
         Task<ConvertFileDto?> GetConvertFileByIdAsync(DirectoryEnum dirEnum, int id);
         Task<ConvertFileDto> AddConvertFileAsync(DirectoryEnum dirEnum, CreateConvertDto convert, ModelStateDictionary? modelState = null);
@@ -50,16 +52,13 @@ namespace LteVideoPlayer.Api.Services
             _convertCronJobService = convertCronJobService;
         }
 
-        public async Task<List<ConvertFileDto>> GetAllConvertFilesAsync(DirectoryEnum dirEnum)
+        public async Task<List<ConvertFileDto>> GetAllConvertFilesAsync()
         {
             try
             {
-                var videoConfig = _videoConfigService.GetVideoConfig(dirEnum);
-                if (!videoConfig.CanConvertVideo)
-                    throw new Exception("Convert video disabled for this directory");
-
-                var convertFiles = await _convertFileRepository.GetAllIncompleteConvertFilessAsync(dirEnum, false);
+                var convertFiles = await _convertFileRepository.GetAllConvertFilesAsync();
                 var dtos = _mapper.Map<List<ConvertFileDto>>(convertFiles);
+                await SetConvertQueueAsync(dtos);
 
                 return dtos;
             }
@@ -70,7 +69,7 @@ namespace LteVideoPlayer.Api.Services
             }
         }
 
-        public async Task<List<ConvertFileDto>> GetAllIncompleteConvertFilesAsync(DirectoryEnum dirEnum)
+        public async Task<List<ConvertFileDto>> GetDirectoryIncompleteConvertFilesAsync(DirectoryEnum dirEnum)
         {
             try
             {
@@ -78,8 +77,9 @@ namespace LteVideoPlayer.Api.Services
                 if (!videoConfig.CanConvertVideo)
                     throw new Exception("Convert video disabled for this directory");
 
-                var convertFiles = await _convertFileRepository.GetAllIncompleteConvertFilessAsync(dirEnum, false);
+                var convertFiles = await _convertFileRepository.GetDirectoryIncompleteConvertFilessAsync(dirEnum, false);
                 var dtos = _mapper.Map<List<ConvertFileDto>>(convertFiles);
+                await SetConvertQueueAsync(dtos);
 
                 return dtos;
             }
@@ -90,7 +90,24 @@ namespace LteVideoPlayer.Api.Services
             }
         }
 
-        public async Task<List<ConvertFileDto>> GetAllCompletedConvertFilesAsync(DirectoryEnum dirEnum)
+        public async Task<List<ConvertFileDto>> GetAllIncompleteConvertFilesAsync()
+        {
+            try
+            {
+                var convertFiles = await _convertFileRepository.GetAllConvertFilesAsync();
+                var dtos = _mapper.Map<List<ConvertFileDto>>(convertFiles);
+                await SetConvertQueueAsync(dtos);
+
+                return dtos;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<List<ConvertFileDto>> GetDirectoryCompletedConvertFilesAsync(DirectoryEnum dirEnum)
         {
             try
             {
@@ -98,8 +115,9 @@ namespace LteVideoPlayer.Api.Services
                 if (!videoConfig.CanConvertVideo)
                     throw new Exception("Convert video disabled for this directory");
 
-                var convertFiles = await _convertFileRepository.GetAllConvertFilesAsync(dirEnum, videoConfig.RootVideoDir);
+                var convertFiles = await _convertFileRepository.GetConvertFilesByOriginalPathAsync(dirEnum, videoConfig.RootVideoDir);
                 var dtos = _mapper.Map<List<ConvertFileDto>>(convertFiles);
+                await SetConvertQueueAsync(dtos);
 
                 return dtos;
             }
@@ -118,7 +136,10 @@ namespace LteVideoPlayer.Api.Services
                 if (!videoConfig.CanConvertVideo)
                     throw new Exception("Convert video disabled for this directory");
 
-                return _mapper.Map<List<ConvertFileDto>>(await _convertFileRepository.GetConvertFileByOriginalAsync(dirEnum, file.Path, file.File));
+                var dtos = _mapper.Map<List<ConvertFileDto>>(await _convertFileRepository.GetConvertFilesByOriginalAsync(dirEnum, file.Path, file.File));
+                await SetConvertQueueAsync(dtos);
+
+                return dtos;
             }
             catch (Exception ex)
             {
@@ -138,7 +159,11 @@ namespace LteVideoPlayer.Api.Services
                 ConvertFileDto? dto = null;
                 var convertFile = await _convertFileRepository.GetConvertFileByIdAsync(id);
                 if (convertFile != null)
+                {
+                    var incompleteQueue = await _convertFileRepository.GetDirectoryIncompleteConvertFilessAsync(dirEnum, false);
                     dto = _mapper.Map<ConvertFileDto>(convertFile);
+                    await SetConvertQueueAsync(new List<ConvertFileDto> { dto });
+                }
 
                 return dto;
             }
@@ -236,10 +261,10 @@ namespace LteVideoPlayer.Api.Services
                 if (!videoConfig.CanConvertVideo)
                     throw new Exception("Convert video disabled for this directory");
 
-                var file = Path.Combine(videoConfig.RootVideoDir, fullPath);
+                var rootVideoFullPath = Path.Combine(videoConfig.RootVideoDir, fullPath);
                 var result = await ProcessHelper.RunProcessAsync(
                     _ffmegConfig.RootFfprobeFile,
-                    $@"-hide_banner -i ""{file}""");
+                    $@"-hide_banner -i ""{rootVideoFullPath}""");
 
                 //$@"-v quiet -print_format json -show_format -show_streams ""{file}""",
 
@@ -256,8 +281,8 @@ namespace LteVideoPlayer.Api.Services
 
                 return new MetadataDto
                 {
-                    Output = result.Output,
-                    Error = result.Error,
+                    Output = result.Output.Replace(rootVideoFullPath, fullPath),
+                    Error = result.Error.Replace(rootVideoFullPath, fullPath),
                 };
             }
             catch (Exception ex)
@@ -272,7 +297,7 @@ namespace LteVideoPlayer.Api.Services
             return _convertCronJobService.CurrentConvertFile();
         }
 
-        private async Task<ConvertFile> ConvertAsync(DirectoryEnum dirEnum, IVideoConfig videoConfig, CreateConvertDto dto, ModelStateDictionary? modelState = null)
+        private async Task<ConvertFile> ConvertAsync(DirectoryEnum dirEnum, VideoConfig videoConfig, CreateConvertDto dto, ModelStateDictionary? modelState = null)
         {
             var stage = "";
             var error = "";
@@ -297,9 +322,14 @@ namespace LteVideoPlayer.Api.Services
                 stage = "ConvertedFile.File";
                 error = "Must have ConvertedFile.File";
             }
+            if (dto.DirectoryEnum != dirEnum)
+            {
+                stage = "ConvertedFile.DirectoryEnum";
+                error = "DirectoryEnum doesnt match DirectoryEnum in use";
+            }
 
-            var convertFile = await _convertFileRepository.GetConvertFileByOriginalAsync(dirEnum, dto.OriginalFile.Path, dto.OriginalFile.File);
-            if (convertFile != null && convertFile.EndedDate == null)
+            var convertFiles = await _convertFileRepository.GetConvertFilesByOriginalAsync(dirEnum, dto.OriginalFile.Path, dto.OriginalFile.File);
+            if (convertFiles.Any(x => x.EndedDate == null))
             {
                 stage = "ConvertedFile";
                 error = "File already queued to be converted";
@@ -312,6 +342,13 @@ namespace LteVideoPlayer.Api.Services
             }
 
             return _mapper.Map<ConvertFile>(dto);
+        }
+
+        private async Task SetConvertQueueAsync(List<ConvertFileDto> dtos)
+        {
+            var incomplete = await _convertFileRepository.GetAllIncompleteConvertFilessAsync(false);
+            foreach (var dto in dtos)
+                dto.QueueIndex = incomplete.FindIndex(x => x.Id == dto.Id);
         }
     }
 }

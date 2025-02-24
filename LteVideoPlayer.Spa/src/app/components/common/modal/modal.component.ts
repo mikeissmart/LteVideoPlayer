@@ -25,7 +25,7 @@ export class ModalComponent {
   @Input()
   size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
   @Input()
-  fullscreen: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | boolean | null = null;
+  fullscreen: boolean | null = null;
   isStatic = input(true);
   showCloseBtn = input(true);
   closeOutput = output({

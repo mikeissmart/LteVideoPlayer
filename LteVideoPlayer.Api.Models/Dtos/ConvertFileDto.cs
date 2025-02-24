@@ -20,9 +20,10 @@ namespace LteVideoPlayer.Api.Models.Dtos
         public bool Errored { get; set; }
         public required FileDataTypeDto OriginalFile { get; set; }
         public required FileDataTypeDto ConvertedFile { get; set; }
-        public int AudioStreamIndex { get; set; } = 0;
+        public int AudioStreamNumber { get; set; } = 0;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? StartedDate { get; set; }
         public DateTime? EndedDate { get; set; }
+        public int QueueIndex { get; set; }
     }
 }

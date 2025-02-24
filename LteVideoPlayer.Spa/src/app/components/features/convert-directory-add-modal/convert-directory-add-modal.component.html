@@ -1,0 +1,132 @@
+<app-modal #modal size="xl" [isStatic]="true" (close)="onClose()">
+  <div header>
+    <h4>Convert Directory</h4>
+  </div>
+  <div body>
+    <div class="row">
+      <div class="col-6">
+        <label for="ConvertedFile.FilePath" class="form-label"
+          >Original Path:</label
+        >
+        <input
+          id="ConvertedFile.FilePath"
+          type="text"
+          class="form-control"
+          disabled
+          [ngModel]="directoryService.currentDirectory().path"
+        />
+      </div>
+      <div class="col-6">
+        <app-input-validation
+          propertyName="path"
+          [modelStateErrors]="_data.errors"
+        >
+          <label for="path" class="form-label">Convert Path:</label>
+          <input
+            id="path"
+            type="text"
+            class="form-control"
+            [(ngModel)]="_data.path"
+          />
+        </app-input-validation>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-6">
+        <app-input-validation
+          propertyName="path"
+          [modelStateErrors]="_data.errors"
+        >
+          <label class="form-label" for="audioStreamNumber"
+            >Audio Stream Number:</label
+          >
+          <div class="input-group">
+            <input
+              class="form-control"
+              type="`number"
+              [min]="1"
+              [(ngModel)]="_data.audioStreamNumber"
+            />
+            <div class="input-group-append">
+              <button
+                class="btn btn-primary"
+                (click)="displayMetaInfo()"
+                [disabled]="_data.convertQueues.length == 0"
+              >
+                Get Meta Data
+              </button>
+            </div>
+          </div>
+        </app-input-validation>
+      </div>
+      <div class="col-6"></div>
+    </div>
+    <h5>Files</h5>
+    <div class="table-responsive">
+      <table class="table table-dark">
+        <thead>
+          <tr>
+            <th>Move</th>
+            <th>Skip</th>
+            <th>Original</th>
+            <th style="white-space: nowrap">Convert (.mp4)</th>
+            <th>Append</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of _data.convertQueues; track $index) {
+          <tr>
+            <td>
+              <button
+                class="btn btn-sm btn-primary"
+                (click)="onMpveUp(item, $index)"
+                [disabled]="$index == 0"
+              >
+                ^
+              </button>
+              &nbsp;
+              <button
+                class="btn btn-sm btn-primary"
+                (click)="onMoveDown(item, $index)"
+                [disabled]="$index == _data.convertQueues.length - 1"
+              >
+                v
+              </button>
+            </td>
+            <td>
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="skipping"
+                (change)="onSkipFileToggle(item)"
+                [checked]="item.skip"
+              />
+            </td>
+            <td>{{ item.file.fileWOExt }}</td>
+            <td style="white-space: nowrap">
+              Episode {{ getEpisodeNumber(item) }}
+            </td>
+            <td>
+              <input
+                id="ConvertedFile.FileName"
+                type="text"
+                class="form-control form-control-sm"
+                [(ngModel)]="item.suffix"
+              />
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-danger" (click)="close()">Cancel</button>
+      &nbsp;
+      <button class="btn btn-success" (click)="onSave()">Save</button>
+    </div>
+  </div>
+</app-modal>
+<app-metadata-modal
+  #metadataModal
+  [file]="_data.metadataFile"
+></app-metadata-modal>

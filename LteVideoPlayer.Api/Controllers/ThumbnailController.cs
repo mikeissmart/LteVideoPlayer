@@ -26,11 +26,11 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         [HttpGet("GetAllThumbnailErrors")]
-        public async Task<IActionResult> GetAllThumbnailErrorsAsync([FromQuery] DirectoryEnum dirEnum)
+        public async Task<IActionResult> GetAllThumbnailErrorsAsync()
         {
             try
             {
-                return Ok(await _thumbnailService.GetAllThumbnailErrorsAsync(dirEnum));
+                return Ok(await _thumbnailService.GetAllThumbnailErrorsAsync());
             }
             catch (Exception ex)
             {
@@ -46,9 +46,9 @@ namespace LteVideoPlayer.Api.Controllers
             {
                 var thumbnail = _thumbnailService.GetFolderThumbnail(dirEnum, fullPath);
                 if (thumbnail.Length == 0)
-                    return File(System.IO.File.OpenRead(thumbnail), "image/jpeg");
+                    return File(System.IO.File.OpenRead(DefualtThumbnail()), "image/jpeg");
                 else
-                    return File(System.IO.File.OpenRead(DefualtThumbnail()), "image/png");
+                    return File(System.IO.File.OpenRead(thumbnail), "image/jpeg");
             }
             catch (Exception ex)
             {
@@ -64,9 +64,9 @@ namespace LteVideoPlayer.Api.Controllers
             {
                 var thumbnail = _thumbnailService.GetFileThumbnail(dirEnum, fullPath);
                 if (thumbnail.Length == 0)
-                    return File(System.IO.File.OpenRead(thumbnail), "image/jpeg");
+                    return File(System.IO.File.OpenRead(DefualtThumbnail()), "image/jpeg");
                 else
-                    return File(System.IO.File.OpenRead(DefualtThumbnail()), "image/png");
+                    return File(System.IO.File.OpenRead(thumbnail), "image/jpeg");
 
             }
             catch (Exception ex)
@@ -145,6 +145,6 @@ namespace LteVideoPlayer.Api.Controllers
         }
 
         private string DefualtThumbnail()
-            => Path.Combine(_environment.WebRootPath, "images", "Default.png");
+            => Path.Combine(_environment.WebRootPath, "images", "Default.jpeg");
     }
 }

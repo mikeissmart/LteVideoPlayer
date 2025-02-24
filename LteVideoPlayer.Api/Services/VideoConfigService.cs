@@ -7,40 +7,41 @@ namespace LteVideoPlayer.Api.Services
 {
     public interface IVideoConfigService : IService
     {
-        IVideoConfig GetVideoConfig(DirectoryEnum dirEnum);
+        VideoConfig GetVideoConfig(DirectoryEnum dirEnum);
         List<DirectoryInfoDto> GetVideoConfigs();
     }
 
     public class VideoConfigService : BaseService, IVideoConfigService
     {
-        private readonly Dictionary<DirectoryEnum, IVideoConfig> _videoConfigs;
+        private readonly VideoConfigs _videoConfigs;
 
-        public VideoConfigService(TvConfig tvConfig, TvStagingConfig tvStagingConfig, CameraConfig cameraConfig)
+        public VideoConfigService(VideoConfigs videoConfigs)
         {
-            _videoConfigs = new Dictionary<DirectoryEnum, IVideoConfig>
-            {
-                { DirectoryEnum.Tv, tvConfig },
-                { DirectoryEnum.Tv_Staging, tvStagingConfig },
-                { DirectoryEnum.Camera, cameraConfig }
-            };
+            _videoConfigs = videoConfigs;
         }
 
-        public IVideoConfig GetVideoConfig(DirectoryEnum dirEnum)
+        public VideoConfig GetVideoConfig(DirectoryEnum dirEnum)
         {
-            if (_videoConfigs.TryGetValue(dirEnum, out var videoConfig))
-                return videoConfig;
+            foreach (var videoConfig in _videoConfigs.Configs)
+            {
+                if (videoConfig.DirectoryEnum == dirEnum)
+                    return videoConfig;
+            }
 
             throw new NotImplementedException();
         }
 
         public List<DirectoryInfoDto> GetVideoConfigs()
         {
-            return _videoConfigs
+            return _videoConfigs.Configs
                 .Select(x => new DirectoryInfoDto
                 {
-                    FriendlyName = x.Value.FriendlyName,
-                    AdminViewOnly = x.Value.AdminViewOnly,
-                    DirEnum = x.Key,
+                    FriendlyName = x.FriendlyName,
+                    CanConvertVideo = x.CanConvertVideo,
+                    CanPlayVideo = x.CanPlayVideo,
+                    CanThumbnailVideo = x.CanThumbnailVideo,
+                    AdminViewOnly = x.AdminViewOnly,
+                    DirEnum = x.DirectoryEnum,
                 })
                 .ToList();
         }
