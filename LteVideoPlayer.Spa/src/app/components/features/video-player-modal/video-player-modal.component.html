@@ -29,35 +29,35 @@
       <div class="col-lg-12">
         <div class="d-flex justify-content-evenly">
           <button
-            class="col btn btn-primary form-control"
+            class="col btn btn-primary me-3"
             (click)="onRestartPlayer()"
             [disabled]="!this._data.isDataLoaded"
           >
             Restart
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary me-3"
             (click)="onSkip(-5)"
             [disabled]="!this._data.isDataLoaded"
           >
             << 5 sec
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary me-3"
             (click)="onSkip(-30)"
             [disabled]="!this._data.isDataLoaded"
           >
             << 30 sec
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary me-3"
             (click)="onSkip(-120)"
             [disabled]="!this._data.isDataLoaded"
           >
             << 2 min
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary"
             (click)="onSkip(-300)"
             [disabled]="!this._data.isDataLoaded"
           >
@@ -70,35 +70,35 @@
       <div class="col-lg-12">
         <div class="d-flex justify-content-evenly">
           <button
-            class="col btn btn-primary"
+            class="col btn btn-primary me-3"
             (click)="onPlayerEnded()"
             [disabled]="this._data.nextFile == null"
           >
             Play Next
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary me-3"
             (click)="onSkip(5)"
             [disabled]="!this._data.isDataLoaded"
           >
             >> 5 sec
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary me-3"
             (click)="onSkip(30)"
             [disabled]="!this._data.isDataLoaded"
           >
             >> 30 sec
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary me-3"
             (click)="onSkip(120)"
             [disabled]="!this._data.isDataLoaded"
           >
             >> 2 min
           </button>
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary"
             (click)="onSkip(300)"
             [disabled]="!this._data.isDataLoaded"
           >
@@ -128,7 +128,7 @@
           } @if (this.directoryService.currentDirectory().dir?.canConvertVideo)
           {
           <button
-            class="col offset-1 btn btn-primary"
+            class="col btn btn-primary"
             (click)="onMetadata()"
             [disabled]="
               !(

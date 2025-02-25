@@ -12,13 +12,15 @@ export class UserProfileService {
 
   currentUserProfile = signal<IUserProfile | null>(null);
 
-  constructor(private readonly httpClient: ApiHttpService) {
+  constructor(private readonly httpClient: ApiHttpService) {}
+
+  getUserProfileFromLocal(): IUserProfile | null {
     const local = localStorage.getItem(this.localUserProfile);
     if (local == undefined || local == null) {
-      this.currentUserProfile.set(null);
+      return null;
     }
 
-    this.currentUserProfile.set(JSON.parse(local!) as IUserProfile);
+    return JSON.parse(local!) as IUserProfile;
   }
 
   setCurrentUserProfile(userProfile: IUserProfile | null): void {

@@ -4,14 +4,17 @@ import {
   effect,
   inject,
   Input,
+  OnInit,
   output,
   ViewChild,
 } from '@angular/core';
 import { ModalComponent } from '../../common/modal/modal.component';
 import { DirectoryService } from '../../../services/api-services/directory.service';
-import { IFile } from '../../../models/models';
+import { IFile, IRemoteVideoInfo } from '../../../models/models';
 import { ThumbnailService } from '../../../services/api-services/thumbnail.service';
 import { MetadataModalComponent } from '../metadata-modal/metadata-modal.component';
+import { RemoteHubService } from '../../../services/hubs/remote-hub.service';
+import { UserProfileService } from '../../../services/api-services/user-profile.service';
 
 @Component({
   selector: 'app-video-player-modal',
@@ -19,10 +22,12 @@ import { MetadataModalComponent } from '../metadata-modal/metadata-modal.compone
   templateUrl: './video-player-modal.component.html',
   styleUrl: './video-player-modal.component.scss',
 })
-export class VideoPlayerModalComponent {
+export class VideoPlayerModalComponent implements OnInit {
   directoryService = inject(DirectoryService);
   thumbnailService = inject(ThumbnailService);
   toasterService = inject(ToasterService);
+  remoteHubService = inject(RemoteHubService);
+  userProfileService = inject(UserProfileService);
 
   closeOutput = output({
     alias: 'close',
@@ -69,6 +74,36 @@ export class VideoPlayerModalComponent {
     this.closeOutput.emit();
   }
 
+  ngOnInit(): void {
+    this.remoteHubService.receiveAskForVideoInfo((data) => {
+      this.sendVideoInfo(data.fromChannel);
+    });
+    this.remoteHubService.receiveSetSeek((data) => {
+      if (this._player != null) {
+        this._player.currentTime = data.seekPercent * this._player.duration;
+      }
+    });
+    this.remoteHubService.receiveMoveSeek((data) => {
+      if (this._player != null) {
+        this._player.currentTime += data.seek;
+      }
+    });
+    this.remoteHubService.receivePlayPause((data) => {
+      if (this._player != null) {
+        if (this._player.paused) {
+          this._player.play();
+        } else {
+          this._player.pause();
+        }
+      }
+    });
+    this.remoteHubService.receiveSetVolume((data) => {
+      if (this._player != null) {
+        this._player.volume = data.volume / 100;
+      }
+    });
+  }
+
   protected clearPlayer(): void {
     this._data = new Data();
     if (this._player != null) {
@@ -87,15 +122,24 @@ export class VideoPlayerModalComponent {
       this._player!.muted = true;
       setTimeout(() => {
         this._player!.muted = false;
-        this._player!.play().catch((error) => {
-          this.toasterService.showError(
-            `Video failed to autoplay. Reselect video '${
-              this._data.currentFile!.fileWOExt
-            }`
-          );
-          this.highlightFailedFile.emit(this._data.currentFile!);
-          this.close();
-        });
+        this._player!.play()
+          .then(() => {
+            if (
+              this.remoteHubService.isConnected() &&
+              this.remoteHubService.myChannel() != 0
+            ) {
+              this.sendVideoInfo(null);
+            }
+          })
+          .catch((error) => {
+            this.toasterService.showError(
+              `Video failed to autoplay. Reselect video '${
+                this._data.currentFile!.fileWOExt
+              }`
+            );
+            this.highlightFailedFile.emit(this._data.currentFile!);
+            this.close();
+          });
       }, 1000);
     } else {
       this._player!.play();
@@ -157,6 +201,21 @@ export class VideoPlayerModalComponent {
       this._data.currentFile!.fullPath,
       (result) => (this._data.hasThumbnail = result)
     );
+  }
+
+  protected sendVideoInfo(toChannel: number | null): void {
+    this.remoteHubService.sendVideoInfo({
+      profile: this.userProfileService.currentUserProfile()!.name,
+      fromChannel: this.remoteHubService.myChannel(),
+      toChannel: toChannel,
+      friendlyName: this.directoryService.currentDirectory().dir!.friendlyName,
+      path: this._data.currentFile!.path,
+      file: this._data.currentFile!,
+      currentTimeSeconds: this._player!.currentTime,
+      maxTimeSeconds: this._player!.duration,
+      volume: this._player!.muted ? 0 : this._player!.volume * 100,
+      isPlaying: !this._player!.paused,
+    } as IRemoteVideoInfo);
   }
 }
 class Data {

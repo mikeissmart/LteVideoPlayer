@@ -1,6 +1,6 @@
 ﻿namespace LteVideoPlayer.Api.Configs
 {
-    public class ConnectConfig : IConfig
+    public class ConnectConfigs : IConfig
     {
         public List<Connection> Connections { get; set; } = new List<Connection>();
     }

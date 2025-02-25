@@ -26,6 +26,8 @@ import { ThumbnailErrorListModalComponent } from '../thumbnail-error-list-modal/
 import { InfiniteScrollComponent } from '../../common/infinite-scroll/infinite-scroll.component';
 import { FormsModule } from '@angular/forms';
 import { ToasterService } from '../../../services/toaster/toaster.service';
+import { RemoteModalComponent } from '../remote-modal/remote-modal.component';
+import { RemoteHubService } from '../../../services/hubs/remote-hub.service';
 
 @Component({
   selector: 'app-directory-list',
@@ -38,6 +40,7 @@ import { ToasterService } from '../../../services/toaster/toaster.service';
     ConvertFileListComponent,
     ThumbnailErrorListModalComponent,
     FormsModule,
+    RemoteModalComponent,
   ],
   templateUrl: './directory-list.component.html',
   styleUrl: './directory-list.component.scss',
@@ -47,6 +50,7 @@ export class DirectoryListComponent {
   thumbnailService = inject(ThumbnailService);
   convertFileService = inject(ConvertFileService);
   toasterService = inject(ToasterService);
+  remoteHubService = inject(RemoteHubService);
 
   dirsAndFiles: IDirsAndFiles | null = null;
   displayedFiles: IFile[] = [];
@@ -68,6 +72,8 @@ export class DirectoryListComponent {
   convertFileListModal!: ModalComponent;
   @ViewChild('thumbnailErrorListModel')
   thumbnailErrorListModel!: ThumbnailErrorListModalComponent;
+  @ViewChild('remoteModal')
+  remoteModal!: RemoteModalComponent;
 
   constructor() {
     effect(() => {

@@ -18,7 +18,7 @@ namespace LteVideoPlayer.Api.Models.Dtos
         public int TimesFailed { get; set; }
         public DirectoryEnum DirectoryEnum { get; set; }
         public string Error { get; set; } = "";
-        public FileDataTypeDto File { get; set; }
+        public FileDto File { get; set; }
         public DateTime LastError { get; set; } = DateTime.Now;
     }
 }

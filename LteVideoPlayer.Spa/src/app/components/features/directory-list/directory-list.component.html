@@ -1,8 +1,11 @@
 @if (curDirPathFile.dir != null && dirsAndFiles != null) {
-<div class="pb-3">
+<div class="mb-3">
+  <p class="text-center">My Channel: {{ remoteHubService.myChannel() }}</p>
+</div>
+<div class="mb-3">
   <p class="text-truncate">Path: \{{ curDirPathFile.path }}</p>
 </div>
-<div class="row pb-3">
+<div class="row mb-3">
   <div class="col-3">
     <button
       class="btn btn-primary form-control"
@@ -10,6 +13,11 @@
       [disabled]="curDirPathFile.path.length == 0"
     >
       Back
+    </button>
+  </div>
+  <div class="col-3">
+    <button class="btn btn-secondary form-control" (click)="remoteModal.open()">
+      Remote
     </button>
   </div>
   @if (curDirPathFile.isAdmin) {
@@ -144,3 +152,4 @@ dirsAndFiles.files.length > 0) {
 <app-thumbnail-error-list-modal
   #thumbnailErrorListModel
 ></app-thumbnail-error-list-modal>
+<app-remote-modal #remoteModal></app-remote-modal>

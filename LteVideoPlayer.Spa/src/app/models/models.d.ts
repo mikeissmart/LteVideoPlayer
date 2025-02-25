@@ -10,8 +10,8 @@ export interface IConvertFile
 	directoryEnum: DirectoryEnum;
 	output: string | null;
 	errored: boolean;
-	originalFile: IFileDataType;
-	convertedFile: IFileDataType;
+	originalFile: IFile;
+	convertedFile: IFile;
 	audioStreamNumber: number;
 	createdDate: Date;
 	startedDate: Date | null;
@@ -53,14 +53,6 @@ export interface IDirsAndFiles
 	dirs: IDir[];
 	files: IFile[];
 }
-export interface IFileDataType
-{
-	path: string;
-	file: string;
-	fullPath: string;
-	fileWOExt: string;
-	fileExt: string;
-}
 export interface IFile
 {
 	path: string;
@@ -85,13 +77,54 @@ export interface IThumbnailError
 	timesFailed: number;
 	directoryEnum: DirectoryEnum;
 	error: string;
-	file: IFileDataType;
+	file: IFile;
 	lastError: Date;
 }
 export interface IUserProfile
 {
 	id: number;
 	name: string;
+}
+export interface IRemote
+{
+	profile: string;
+	fromChannel: number;
+	toChannel: number | null;
+}
+export interface IRemoteMoveSeek
+{
+	seek: number;
+	profile: string;
+	fromChannel: number;
+	toChannel: number | null;
+}
+export interface IRemoteSetSeek
+{
+	seekPercent: number;
+	profile: string;
+	fromChannel: number;
+	toChannel: number | null;
+}
+export interface IRemoteSetVolume
+{
+	volume: number;
+	profile: string;
+	fromChannel: number;
+	toChannel: number | null;
+}
+export interface IRemoteVideoInfo
+{
+	directoryEnum: DirectoryEnum;
+	friendlyName: string;
+	path: string;
+	file: IFile;
+	currentTimeSeconds: number;
+	maxTimeSeconds: number;
+	volume: number;
+	isPlaying: boolean;
+	profile: string;
+	fromChannel: number;
+	toChannel: number | null;
 }
 export interface IAppLogFilter
 {

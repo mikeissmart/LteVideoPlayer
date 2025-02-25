@@ -7,10 +7,10 @@ namespace LteVideoPlayer.Api.Services
 {
     public class ConnectService : IDisposable
     {
-        private readonly ConnectConfig _connectConfig;
+        private readonly ConnectConfigs _connectConfig;
         private readonly List<NetworkConnection> _connections;
 
-        public ConnectService(ConnectConfig config)
+        public ConnectService(ConnectConfigs config)
         {
             _connectConfig = config;
             _connections = new List<NetworkConnection>();

@@ -18,8 +18,8 @@ namespace LteVideoPlayer.Api.Models.Dtos
         public required DirectoryEnum DirectoryEnum { get; set; }
         public string? Output { get; set; }
         public bool Errored { get; set; }
-        public required FileDataTypeDto OriginalFile { get; set; }
-        public required FileDataTypeDto ConvertedFile { get; set; }
+        public required FileDto OriginalFile { get; set; }
+        public required FileDto ConvertedFile { get; set; }
         public int AudioStreamNumber { get; set; } = 0;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? StartedDate { get; set; }

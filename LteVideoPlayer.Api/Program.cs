@@ -1,5 +1,6 @@
 using LteVideoPlayer.Api.Configs;
 using LteVideoPlayer.Api.CronJobs;
+using LteVideoPlayer.Api.Hubs;
 using LteVideoPlayer.Api.Logging;
 using LteVideoPlayer.Api.Models;
 using LteVideoPlayer.Api.Persistance;
@@ -59,6 +60,8 @@ internal class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.MapHub<RemoteHub>("/hub/remotehub");
 
         app.Run();
     }

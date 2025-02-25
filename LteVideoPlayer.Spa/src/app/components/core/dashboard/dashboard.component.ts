@@ -26,9 +26,9 @@ export class DashboardComponent implements OnInit {
   directories: IDirectoryInfo[] = [];
 
   ngOnInit(): void {
-    const userProfile = this.userProfileService.currentUserProfile();
+    const userProfile = this.userProfileService.getUserProfileFromLocal();
     if (userProfile != null) {
-      this.userProfileService.getUserProfileById(userProfile.id!, (result) =>
+      this.userProfileService.getUserProfileById(userProfile.id, (result) =>
         this.userProfileService.setCurrentUserProfile(result)
       );
     }
@@ -36,9 +36,9 @@ export class DashboardComponent implements OnInit {
       this.directories = result;
     });
     this.activeRoute.queryParamMap.subscribe((params) => {
-      const isAdmin = true; /*params.has('admin')
+      const isAdmin = params.has('admin')
         ? params.get('admin')! == 'true'
-        : false;*/
+        : false;
       const directory = params.has('directory')
         ? params.get('directory')!
         : null;
