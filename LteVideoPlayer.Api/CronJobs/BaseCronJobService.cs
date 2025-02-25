@@ -4,6 +4,7 @@ using LteVideoPlayer.Api.Models.Entities.Logging;
 using LteVideoPlayer.Api.Persistance.Repositories.Logging;
 using Microsoft.Extensions.Hosting.Internal;
 using System.Threading;
+using System.Timers;
 
 namespace LteVideoPlayer.Api.CronJobs
 {
@@ -33,7 +34,7 @@ namespace LteVideoPlayer.Api.CronJobs
 
         public void DoWorkNow()
         {
-            if (_timer != null)
+            if (_timer != null && !_isRunning)
             {
                 _timer.Stop();
                 _timer.Interval = 0.1;

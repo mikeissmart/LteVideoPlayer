@@ -33,13 +33,18 @@ namespace LteVideoPlayer.Api.CronJobs
             _directoryService = scope.ServiceProvider.GetRequiredService<IDirectoryService>();
             _convertFileService = scope.ServiceProvider.GetRequiredService<IConvertFileService>();
 
+            var runThumbnailCronJobService = false;
             var convertFiles = await _convertFileService.GetAllIncompleteConvertFilesAsync();
             foreach (var file in convertFiles)
             {
+                runThumbnailCronJobService = true;
                 await ConvertFilesAsync(file, cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                     break;
             }
+
+            if (runThumbnailCronJobService)
+                scope.ServiceProvider.GetRequiredService<ThumbnailCronJobService>().DoWorkNow();
 
             return null;
         }
