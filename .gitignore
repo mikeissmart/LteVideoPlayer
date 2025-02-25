@@ -633,3 +633,5 @@ FodyWeavers.xsd
 
 # ignore sqlite db
 *.db*
+/LteVideoPlayer.Spa/angular.json
+/LteVideoPlayer.Api/appsettings.json
