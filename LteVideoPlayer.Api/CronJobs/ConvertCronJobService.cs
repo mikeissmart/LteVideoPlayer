@@ -95,7 +95,7 @@ namespace LteVideoPlayer.Api.CronJobs
                         true);
 
                     stage = "Delete Original File";
-                    //File.Delete(videoRootDirFullPath);
+                    File.Delete(videoRootDirFullPath);
 
                     var checkDeletePath = Path.Combine(videoConfig.RootVideoDir, convertFile.OriginalFile.Path);
                     if (Directory.GetFiles(checkDeletePath).Length == 0
