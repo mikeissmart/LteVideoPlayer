@@ -1,16 +1,15 @@
 import { ConvertFileService } from './../../../services/api-services/convert-file.service';
 import {
   IConvertFile,
-  ICreateConvert,
+  ICreateFileConvert,
   IFile,
 } from './../../../models/models.d';
-import { Component, Input, output, ViewChild, inject } from '@angular/core';
+import { Component, output, ViewChild, inject } from '@angular/core';
 import { ModalComponent } from '../../common/modal/modal.component';
 import { InputValidationComponent } from '../../common/input-validation/input-validation.component';
 import { ModelStateErrors } from '../../../models/ModelStateErrors';
 import { FormsModule } from '@angular/forms';
 import { DirectoryService } from '../../../services/api-services/directory.service';
-import { DatePipe } from '@angular/common';
 import { ConvertFileListComponent } from '../convert-file-list/convert-file-list.component';
 
 @Component({
@@ -68,7 +67,7 @@ export class ConvertFileAddModalComponent {
 
   protected onSave(): void {
     if (this.isValid()) {
-      this.convertFileService.addConvert(
+      this.convertFileService.addConvertFile(
         this.directoryService.currentDirectory().dir!.dirEnum,
         {
           directoryEnum: this.directoryService.currentDirectory().dir!.dirEnum,
@@ -78,7 +77,7 @@ export class ConvertFileAddModalComponent {
             file: this._data.name + '.mp4',
           } as IFile,
           audioStreamNumber: this._data.audioStreamNumber,
-        } as ICreateConvert,
+        } as ICreateFileConvert,
         (result) => {
           this._data.file!.isConvertQueued = true;
           this.fileConvertQueued.emit(this._data.file!);

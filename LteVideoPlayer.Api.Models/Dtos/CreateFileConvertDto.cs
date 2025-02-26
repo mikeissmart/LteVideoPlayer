@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LteVideoPlayer.Api.Models.Dtos
 {
-    public class CreateConvertDto :
+    public class CreateFileConvertDto :
         IRefactorType,
         IMapTo<ConvertFile>
     {

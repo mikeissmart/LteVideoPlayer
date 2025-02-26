@@ -209,6 +209,11 @@ export class DirectoryListComponent {
     this.convertFileAddModel.close();
   }
 
+  onDirectoryConvertQueued(files: IFile[]): void {
+    this.dirsAndFiles!.files = files;
+    this.convertDirectoryAddModel.close();
+  }
+
   showAllThumbnailErrorsList(): void {
     this.thumbnailErrorListModel.open();
   }

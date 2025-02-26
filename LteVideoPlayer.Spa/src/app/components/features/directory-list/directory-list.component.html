@@ -138,6 +138,7 @@ dirsAndFiles.files.length > 0) {
 ></app-convert-file-add-modal>
 <app-convert-directory-add-modal
   #convertDirectoryAddModel
+  (directoryConvertQueued)="onDirectoryConvertQueued($event)"
 ></app-convert-directory-add-modal>
 <app-modal #convertFileListModal size="xl" [isStatic]="false">
   <div header>

@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import {
   IConvertFile,
+  ICreateDirectoryConvert,
+  ICreateFileConvert,
   IFile,
-  ICreateConvert,
-  ICreateManyConvert,
-  IConvertManyFile,
   IMetadata,
 } from '../../models/models';
 import { ModelStateErrors } from '../../models/ModelStateErrors';
@@ -40,28 +39,28 @@ export class ConvertFileService {
     );
   }
 
-  addConvert(
+  addConvertFile(
     dirEnum: DirectoryEnum,
-    convertFile: ICreateConvert,
+    convertFile: ICreateFileConvert,
     callback: (convertVideoFile: IConvertFile) => void,
     errorCallback?: (errors: ModelStateErrors | null) => void
   ): void {
     this.httpClient.post(
-      this.baseUri + `AddConvert?dirEnum=${dirEnum}`,
+      this.baseUri + `AddConvertFile?dirEnum=${dirEnum}`,
       convertFile,
       callback,
       errorCallback
     );
   }
 
-  addManyConvert(
+  addConvertDirectory(
     dirEnum: DirectoryEnum,
-    convertFile: ICreateManyConvert,
-    callback: (convertVideoFile: IConvertManyFile) => void,
+    convertFile: ICreateDirectoryConvert,
+    callback: (convertVideoFile: ICreateDirectoryConvert) => void,
     errorCallback?: (errors: ModelStateErrors | null) => void
   ): void {
     this.httpClient.post(
-      this.baseUri + `AddManyConvert?dirEnum=${dirEnum}`,
+      this.baseUri + `AddConvertDirectory?dirEnum=${dirEnum}`,
       convertFile,
       callback,
       errorCallback

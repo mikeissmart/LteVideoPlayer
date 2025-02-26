@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace LteVideoPlayer.Api.Models.Dtos
 {
-    public class ConvertManyFileDto : IRefactorType
+    public class CreateDirectoryConvertDto : IRefactorType
     {
-        public List<ConvertFileDto> Converts { get; set; } = new List<ConvertFileDto>();
+        public List<CreateFileConvertDto> Converts { get; set; } = new List<CreateFileConvertDto>();
     }
 }

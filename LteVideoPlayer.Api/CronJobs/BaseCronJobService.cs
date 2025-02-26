@@ -87,6 +87,10 @@ namespace LteVideoPlayer.Api.CronJobs
                                 var logType = typeof(ILogger<>).MakeGenericType(GetType());
                                 var logger = (ILogger)scope.ServiceProvider.GetRequiredService(logType);
                                 logger.LogError(ex, ex.Message);
+
+                                log.Errored = true;
+                                log.ErrorMessage = ex.Message;
+                                log.ErrorStackTrace = ex.StackTrace;
                                 ;
                             }
                             finally

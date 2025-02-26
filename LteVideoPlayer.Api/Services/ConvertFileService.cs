@@ -23,8 +23,8 @@ namespace LteVideoPlayer.Api.Services
         Task<List<ConvertFileDto>> GetDirectoryCompletedConvertFilesAsync(DirectoryEnum dirEnum);
         Task<List<ConvertFileDto>> GetConvertFileByOriginalFileAsync(DirectoryEnum dirEnum, FileDto file);
         Task<ConvertFileDto?> GetConvertFileByIdAsync(DirectoryEnum dirEnum, int id);
-        Task<ConvertFileDto> AddConvertFileAsync(DirectoryEnum dirEnum, CreateConvertDto convert, ModelStateDictionary? modelState = null);
-        Task<ConvertManyFileDto> AddConvertManyFileAsync(DirectoryEnum dirEnum, CreateManyConvertDto convert, ModelStateDictionary? modelState = null);
+        Task<ConvertFileDto> AddConvertFileAsync(DirectoryEnum dirEnum, CreateFileConvertDto convert, ModelStateDictionary? modelState = null);
+        Task<ConvertDirectoryDto> AddConvertDirectoryAsync(DirectoryEnum dirEnum, CreateDirectoryConvertDto convert, ModelStateDictionary? modelState = null);
         Task<ConvertFileDto> UpdateConvertAsync(ConvertFileDto convert);
         Task DeleteConvertAsync(ConvertFileDto convert);
         Task<MetadataDto> GetVideoMetaAsync(DirectoryEnum dirEnum, string fileFullPath);
@@ -174,7 +174,7 @@ namespace LteVideoPlayer.Api.Services
             }
         }
 
-        public async Task<ConvertFileDto> AddConvertFileAsync(DirectoryEnum dirEnum, CreateConvertDto convert, ModelStateDictionary? modelState = null)
+        public async Task<ConvertFileDto> AddConvertFileAsync(DirectoryEnum dirEnum, CreateFileConvertDto convert, ModelStateDictionary? modelState = null)
         {
             try
             {
@@ -195,7 +195,7 @@ namespace LteVideoPlayer.Api.Services
             }
         }
 
-        public async Task<ConvertManyFileDto> AddConvertManyFileAsync(DirectoryEnum dirEnum, CreateManyConvertDto convert, ModelStateDictionary? modelState = null)
+        public async Task<ConvertDirectoryDto> AddConvertDirectoryAsync(DirectoryEnum dirEnum, CreateDirectoryConvertDto convert, ModelStateDictionary? modelState = null)
         {
             try
             {
@@ -203,13 +203,21 @@ namespace LteVideoPlayer.Api.Services
                 if (!videoConfig.CanConvertVideo)
                     throw new Exception("Convert video disabled for this directory");
 
-                var result = new ConvertManyFileDto();
+                var files = new List<ConvertFile>();
                 foreach (var item in convert.Converts)
                 {
-                    result.Converts.Add(_mapper.Map<ConvertFileDto>(await ConvertAsync(dirEnum, videoConfig, item, modelState)));
+                    files.Add(await ConvertAsync(dirEnum, videoConfig, item, modelState));
+                    if (modelState != null && modelState.ErrorCount > 0)
+                        throw new Exception($"Unable to convert file '{item.OriginalFile.FullPath}");
                 }
 
-                return result;
+                await _convertFileRepository.AddRangeAsync(files);
+                await _convertFileRepository.SaveChangesAsync();
+
+                return new ConvertDirectoryDto
+                {
+                    Converts = _mapper.Map<List<ConvertFileDto>>(files)
+                };
             }
             catch (Exception ex)
             {
@@ -297,34 +305,34 @@ namespace LteVideoPlayer.Api.Services
             return _convertCronJobService.CurrentConvertFile();
         }
 
-        private async Task<ConvertFile> ConvertAsync(DirectoryEnum dirEnum, VideoConfig videoConfig, CreateConvertDto dto, ModelStateDictionary? modelState = null)
+        private async Task<ConvertFile> ConvertAsync(DirectoryEnum dirEnum, VideoConfig videoConfig, CreateFileConvertDto dto, ModelStateDictionary? modelState = null)
         {
             var stage = "";
             var error = "";
 
             if (string.IsNullOrEmpty(dto.OriginalFile.Path))
             {
-                stage = "OriginalFile.Path";
+                stage = "Path";
                 error = "Must have OriginalFile.Path";
             }
             if (string.IsNullOrEmpty(dto.OriginalFile.File))
             {
-                stage = "OriginalFile.File";
+                stage = "File";
                 error = "Must have OriginalFile.File";
             }
             if (string.IsNullOrEmpty(dto.ConvertedFile.Path))
             {
-                stage = "ConvertedFile.Path";
+                stage = "Path";
                 error = "Must have ConvertedFile.Path";
             }
             if (string.IsNullOrEmpty(dto.ConvertedFile.File))
             {
-                stage = "ConvertedFile.File";
+                stage = "File";
                 error = "Must have ConvertedFile.File";
             }
             if (dto.DirectoryEnum != dirEnum)
             {
-                stage = "ConvertedFile.DirectoryEnum";
+                stage = "DirectoryEnum";
                 error = "DirectoryEnum doesnt match DirectoryEnum in use";
             }
 
@@ -337,7 +345,7 @@ namespace LteVideoPlayer.Api.Services
 
             if (stage != "")
             {
-                modelState?.AddModelError($"{stage}: {dto.OriginalFile.FullPath}", error);
+                modelState?.AddModelError(stage, $"{dto.OriginalFile.FullPath} {error}");
                 throw new ArgumentException(error);
             }
 

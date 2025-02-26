@@ -4,6 +4,10 @@
 
 import { DirectoryEnum } from './model.enum';
 
+export interface IConvertDirectory
+{
+	converts: IConvertFile[];
+}
 export interface IConvertFile
 {
 	id: number;
@@ -18,20 +22,16 @@ export interface IConvertFile
 	endedDate: Date | null;
 	queueIndex: number;
 }
-export interface IConvertManyFile
+export interface ICreateDirectoryConvert
 {
-	converts: IConvertFile[];
+	converts: ICreateFileConvert[];
 }
-export interface ICreateConvert
+export interface ICreateFileConvert
 {
 	directoryEnum: DirectoryEnum;
 	originalFile: IFile;
 	convertedFile: IFile;
 	audioStreamNumber: number;
-}
-export interface ICreateManyConvert
-{
-	converts: ICreateConvert[];
 }
 export interface IDir
 {

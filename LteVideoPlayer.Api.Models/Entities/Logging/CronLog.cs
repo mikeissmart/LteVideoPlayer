@@ -16,6 +16,9 @@ namespace LteVideoPlayer.Api.Models.Entities.Logging
         public CronLogTypeEnum CronLogType { get; set; }
         public string? Message { get; set; }
         public bool IsCanceled { get; set; }
+        public bool Errored { get; set; }
+        public string? ErrorMessage { get; set; }
+        public string? ErrorStackTrace { get; set; }
         public DateTime StartDateTime { get; set; }
         public DateTime EndDateTime { get; set; }
     }

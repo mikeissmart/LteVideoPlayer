@@ -44,8 +44,8 @@ namespace LteVideoPlayer.Api.Controllers
             }
         }
 
-        [HttpPost("AddConvert")]
-        public async Task<IActionResult> AddConvert([FromQuery] DirectoryEnum dirEnum, [FromBody] CreateConvertDto convert)
+        [HttpPost("AddConvertFile")]
+        public async Task<IActionResult> AddConvertFile([FromQuery] DirectoryEnum dirEnum, [FromBody] CreateFileConvertDto convert)
         {
             try
             {
@@ -57,12 +57,12 @@ namespace LteVideoPlayer.Api.Controllers
             }
         }
 
-        [HttpPost("AddManyConvert")]
-        public async Task<IActionResult> AddManyConvert([FromQuery] DirectoryEnum dirEnum, [FromBody] CreateManyConvertDto convert)
+        [HttpPost("AddConvertDirectory")]
+        public async Task<IActionResult> AddConvertDirectory([FromQuery] DirectoryEnum dirEnum, [FromBody] CreateDirectoryConvertDto convert)
         {
             try
             {
-                return Ok(await _convertFileService.AddConvertManyFileAsync(dirEnum, convert, ModelState));
+                return Ok(await _convertFileService.AddConvertDirectoryAsync(dirEnum, convert, ModelState));
             }
             catch
             {

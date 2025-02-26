@@ -3,9 +3,8 @@ import { ModalComponent } from '../../common/modal/modal.component';
 import { ConvertFileService } from '../../../services/api-services/convert-file.service';
 import { DirectoryService } from '../../../services/api-services/directory.service';
 import {
-  ICreateConvert,
-  ICreateManyConvert,
-  IDirsAndFiles,
+  ICreateDirectoryConvert,
+  ICreateFileConvert,
   IFile,
 } from '../../../models/models';
 import { ModelStateErrors } from '../../../models/ModelStateErrors';
@@ -111,7 +110,7 @@ export class ConvertDirectoryAddModalComponent {
 
   protected onSave(): void {
     if (this.isValid()) {
-      const converts = [] as ICreateConvert[];
+      const converts = [] as ICreateFileConvert[];
       this._data.convertQueues
         .filter((x) => !x.skip)
         .forEach((x) => {
@@ -126,14 +125,14 @@ export class ConvertDirectoryAddModalComponent {
               }.mp4`,
             } as IFile,
             audioStreamNumber: this._data.audioStreamNumber,
-          } as ICreateConvert);
+          } as ICreateFileConvert);
         });
 
-      this.convertFileService.addManyConvert(
+      this.convertFileService.addConvertDirectory(
         this.directoryService.currentDirectory().dir!.dirEnum,
         {
           converts: converts,
-        } as ICreateManyConvert,
+        } as ICreateDirectoryConvert,
         (result) => {
           this._data.files.forEach((x) => (x.isConvertQueued = true));
           this.directoryConvertQueued.emit(this._data.files);
