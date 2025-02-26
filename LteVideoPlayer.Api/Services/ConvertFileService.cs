@@ -94,7 +94,7 @@ namespace LteVideoPlayer.Api.Services
         {
             try
             {
-                var convertFiles = await _convertFileRepository.GetAllConvertFilesAsync();
+                var convertFiles = await _convertFileRepository.GetAllIncompleteConvertFilessAsync(false);
                 var dtos = _mapper.Map<List<ConvertFileDto>>(convertFiles);
                 await SetConvertQueueAsync(dtos);
 
