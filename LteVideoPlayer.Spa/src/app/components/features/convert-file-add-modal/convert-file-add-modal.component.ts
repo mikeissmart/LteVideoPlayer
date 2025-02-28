@@ -34,10 +34,13 @@ export class ConvertFileAddModalComponent {
 
   @ViewChild('modal')
   protected _modal!: ModalComponent;
+  @ViewChild('convertFileList')
+  protected _convertFileList!: ConvertFileListComponent;
 
   protected _data = new Data();
 
   open(): void {
+    this._convertFileList.fetchCurrentConvert();
     this._modal.open();
   }
 

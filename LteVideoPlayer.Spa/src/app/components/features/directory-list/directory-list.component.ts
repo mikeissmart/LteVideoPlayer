@@ -74,6 +74,8 @@ export class DirectoryListComponent {
   thumbnailErrorListModel!: ThumbnailErrorListModalComponent;
   @ViewChild('remoteModal')
   remoteModal!: RemoteModalComponent;
+  @ViewChild('convertFileList')
+  convertFileList!: ConvertFileListComponent;
 
   constructor() {
     effect(() => {
@@ -178,6 +180,7 @@ export class DirectoryListComponent {
   showAllConvertList(): void {
     this.convertFileService.getAllConvertFiles((result) => {
       this.convertFiles = result;
+      this.convertFileList.fetchCurrentConvert();
       this.convertFileListModal.open();
     });
   }
@@ -188,6 +191,7 @@ export class DirectoryListComponent {
       file,
       (result) => {
         this.convertFiles = result;
+        this.convertFileList.fetchCurrentConvert();
         this.convertFileListModal.open();
       }
     );

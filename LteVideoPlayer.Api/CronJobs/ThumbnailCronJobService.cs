@@ -4,6 +4,7 @@ using LteVideoPlayer.Api.Models.Dtos;
 using LteVideoPlayer.Api.Models.Entities;
 using LteVideoPlayer.Api.Models.Enums;
 using LteVideoPlayer.Api.Services;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.IO;
@@ -78,6 +79,7 @@ namespace LteVideoPlayer.Api.CronJobs
                 if (cancellationToken.IsCancellationRequested)
                     break;
             }
+            _currentThumbnail = "";
         }
 
         private async Task<List<FileDto>> GetDirectoryVideosMissingThumbnailsAsync(VideoConfig videoConfig, string path)

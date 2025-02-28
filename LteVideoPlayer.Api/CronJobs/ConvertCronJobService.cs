@@ -120,6 +120,7 @@ namespace LteVideoPlayer.Api.CronJobs
                 else
                     await _convertFileService.DeleteConvertAsync(convertFile);
             }
+            _convertFile = null;
         }
     }
 }

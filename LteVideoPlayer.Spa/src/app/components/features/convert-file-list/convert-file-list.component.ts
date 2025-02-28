@@ -17,10 +17,10 @@ export class ConvertFileListComponent implements OnInit {
   protected _currentConvert: IConvertFile | null = null;
 
   ngOnInit(): void {
-    this.onFetchCurrentConvert();
+    this.fetchCurrentConvert();
   }
 
-  protected onFetchCurrentConvert(): void {
+  fetchCurrentConvert(): void {
     this.convertFileService.getCurrentConvertFile(
       (result) => (this._currentConvert = result)
     );
