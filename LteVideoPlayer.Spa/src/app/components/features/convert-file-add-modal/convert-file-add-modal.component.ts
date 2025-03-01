@@ -11,6 +11,7 @@ import { ModelStateErrors } from '../../../models/ModelStateErrors';
 import { FormsModule } from '@angular/forms';
 import { DirectoryService } from '../../../services/api-services/directory.service';
 import { ConvertFileListComponent } from '../convert-file-list/convert-file-list.component';
+import { MetadataModalComponent } from '../metadata-modal/metadata-modal.component';
 
 @Component({
   selector: 'app-convert-file-add-modal',
@@ -19,6 +20,7 @@ import { ConvertFileListComponent } from '../convert-file-list/convert-file-list
     InputValidationComponent,
     FormsModule,
     ConvertFileListComponent,
+    MetadataModalComponent,
   ],
   templateUrl: './convert-file-add-modal.component.html',
   styleUrl: './convert-file-add-modal.component.scss',
@@ -36,6 +38,8 @@ export class ConvertFileAddModalComponent {
   protected _modal!: ModalComponent;
   @ViewChild('convertFileList')
   protected _convertFileList!: ConvertFileListComponent;
+  @ViewChild('metadataModal')
+  protected _metadataModal!: MetadataModalComponent;
 
   protected _data = new Data();
 
@@ -110,6 +114,10 @@ export class ConvertFileAddModalComponent {
     }
 
     return this._data.errors == null;
+  }
+
+  protected displayMetaInfo(): void {
+    this._metadataModal.open();
   }
 }
 class Data {

@@ -46,12 +46,19 @@
           <label class="form-label" for="audioStreamNumber"
             >Audio Stream Number:</label
           >
-          <input
-            class="form-control"
-            type="`number"
-            [min]="1"
-            [(ngModel)]="_data.audioStreamNumber"
-          />
+          <div class="input-group">
+            <input
+              class="form-control"
+              type="`number"
+              [min]="1"
+              [(ngModel)]="_data.audioStreamNumber"
+            />
+            <div class="input-group-append">
+              <button class="btn btn-primary" (click)="displayMetaInfo()">
+                Get Meta Data
+              </button>
+            </div>
+          </div>
         </app-input-validation>
       </div>
       <div class="col-6"></div>
@@ -62,10 +69,11 @@
       <button class="btn btn-success" (click)="onSave()">Save</button>
     </div>
     <hr />
+    }
     <app-convert-file-list
       #convertFileList
       [convertFiles]="_data.convertFiles"
     ></app-convert-file-list>
-    }
   </div>
 </app-modal>
+<app-metadata-modal #metadataModal [file]="_data.file"></app-metadata-modal>
