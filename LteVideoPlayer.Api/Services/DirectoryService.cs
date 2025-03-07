@@ -71,14 +71,12 @@ namespace LteVideoPlayer.Api.Services
                 if (fileIndex == files.Count - 1)
                 {
                     // Last file go to next dir
-                    var fileVideoFullPath = Path.Combine(videoConfig.RootVideoDir, file.Path);
-                    var parentVideoFullPath = Directory.GetParent(fileVideoFullPath)!.FullName;
-                    var dirs = GetDirs(parentVideoFullPath, videoConfig, false);
+                    var dirs = GetDirs(Directory.GetParent(Path.Combine(videoConfig.RootVideoDir, file.Path))!.Name, videoConfig, false);
 
-                    var dirIndex = dirs.FindIndex(x => x.FullPath == fileVideoFullPath);
+                    var dirIndex = dirs.FindIndex(x => x.FullPath == file.Path);
                     if (dirIndex > -1 && dirIndex != dirs.Count - 1)
                     {
-                        files = GetFiles(dirs[dirIndex + 1].Path, videoConfig, false);
+                        files = GetFiles(dirs[dirIndex + 1].FullPath, videoConfig, false);
                         if (files.Count > 0)
                             nextFile = files[0];
                     }

@@ -151,6 +151,7 @@ export class VideoPlayerModalComponent implements OnInit {
   protected onPlayerEnded(): void {
     if (this._data.nextFile != null) {
       const value = this.directoryService.getCopyCurrentDirectory();
+      value.path = this._data.nextFile.path;
       value.file = this._data.nextFile.file;
       this.directoryService.updateCurrentDirectory(value);
     }
